@@ -1,0 +1,40 @@
+{
+  "name": "@geekie/navigator",
+  "version": "1.0.0-beta.1",
+  "description": "A minimal navigator library for React Native",
+  "repository": "geekie/navigator",
+  "license": "MIT",
+  "main": "dist/Navigator.js",
+  "files": [
+    "dist"
+  ],
+  "peerDependencies": {
+    "react-native": "^0.55.0",
+    "react": "^16.3.0"
+  },
+  "devDependencies": {
+    "@babel/cli": "7.0.0-beta.47",
+    "@babel/core": "7.0.0-beta.47",
+    "@babel/plugin-proposal-optional-chaining": "7.0.0-beta.47",
+    "babel-core": "^7.0.0-bridge.0",
+    "babel-eslint": "^8.2.6",
+    "babel-jest": "^23.4.0",
+    "babel-preset-react-native": "^5.0.1",
+    "eslint": "^5.2.0",
+    "eslint-config-prettier": "^2.9.0",
+    "eslint-plugin-flowtype": "^2.50.0",
+    "eslint-plugin-prettier": "^2.6.2",
+    "eslint-plugin-react": "^7.10.0",
+    "flow-bin": "^0.77.0",
+    "jest": "^23.4.1",
+    "prettier": "^1.14.0",
+    "react": "^16.4.1",
+    "react-dom": "^16.4.1",
+    "react-native": "^0.56.0",
+    "react-test-renderer": "^16.4.1"
+  },
+  "scripts": {
+    "prepare": "npm run build",
+    "build": "BABEL_ENV=\"production\" babel src/ -d dist/"
+  }
+}

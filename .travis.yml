@@ -1,0 +1,12 @@
+language: node_js
+cache:
+  yarn: true
+  directories:
+    - node_modules
+matrix:
+  - JOB=test
+  - JOB=lint
+script:
+  - eslint .
+  - flow check
+  - jest

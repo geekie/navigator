@@ -1,6 +1,6 @@
 {
   "name": "@geekie/navigator",
-  "version": "1.0.0-beta.1",
+  "version": "1.0.0-beta.2",
   "description": "A minimal navigator library for React Native",
   "repository": "geekie/navigator",
   "license": "MIT",

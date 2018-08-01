@@ -59,7 +59,7 @@ export default class Navigator extends React.Component<
     dismiss: wrap(this.dismiss.bind(this))
   };
   _rendered: WeakMap<RouteStack, React.Element<any>> = new WeakMap();
-  _unsubscribe: () => void;
+  _subscription: ?{ remove(): void };
 
   constructor(props: NavigatorProps) {
     super(props);
@@ -102,7 +102,7 @@ export default class Navigator extends React.Component<
   }
 
   componentDidMount() {
-    this._unsubscribe = BackHandler.addEventListener(
+    this._subscription = BackHandler.addEventListener(
       "hardwareBackPress",
       () => {
         if (this.state.stacks.length > 1) {
@@ -114,7 +114,8 @@ export default class Navigator extends React.Component<
   }
 
   componentWillUnmount() {
-    this._unsubscribe();
+    // $FlowFixMe
+    this._subscription?.remove();
   }
 
   render() {
@@ -162,7 +163,7 @@ class StackNavigator extends React.Component<
     reset: wrap(this.reset.bind(this))
   };
   _rendered: WeakMap<Route, React.Element<any>> = new WeakMap();
-  _unsubscribe: () => void;
+  _subscription: ?{ remove(): void };
 
   constructor(props: StackNavigatorProps) {
     super(props);
@@ -266,7 +267,7 @@ class StackNavigator extends React.Component<
   }
 
   componentDidMount() {
-    this._unsubscribe = BackHandler.addEventListener(
+    this._subscription = BackHandler.addEventListener(
       "hardwareBackPress",
       () => {
         if (this.state.routes.length > 1) {
@@ -278,7 +279,8 @@ class StackNavigator extends React.Component<
   }
 
   componentWillUnmount() {
-    this._unsubscribe();
+    // $FlowFixMe
+    this._subscription?.remove();
   }
 
   render() {

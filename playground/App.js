@@ -1,23 +1,40 @@
 /** @flow */
 
 import React from "react";
-import { Switch, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import {
+  Switch as RNSwitch,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View
+} from "react-native";
 import Navigator from "@geekie/navigator";
 import type { NavigatorActions } from "@geekie/navigator";
 
 let COLOR = 0;
 const colors = ["#fff", "#00f", "#0f0", "#f00", "#ff0", "#f0f", "#0ff"];
 
-type OptionsConfig = {|
-  animated: boolean,
-  setAnimated(boolean): void
-|};
+const { Provider, Consumer } = React.createContext({});
 
-// prettier-ignore
-const Options = React.createContext/*::<OptionsConfig>*/({
-  animated: true,
-  setAnimated() {}
-});
+function Button(props) {
+  return (
+    <TouchableOpacity
+      style={[styles.button, styles.bordered]}
+      onPress={props.onPress}
+    >
+      <Text>{props.text}</Text>
+    </TouchableOpacity>
+  );
+}
+
+function Switch({ label, ...props }) {
+  return (
+    <View style={styles.switchContainer}>
+      <Text>{label}:</Text>
+      <RNSwitch style={styles.switch} {...props} />
+    </View>
+  );
+}
 
 function Component(props: {
   navigator: NavigatorActions,
@@ -26,31 +43,26 @@ function Component(props: {
   stacks: number
 }) {
   return (
-    <Options.Consumer>
-      {({ setAnimated, ...options }) => (
+    <Consumer>
+      {({ setAnimated, animated }) => (
         <View
           style={[
             styles.container,
             { backgroundColor: colors[props.color % 7] }
           ]}
         >
-          <View
-            style={[styles.bordered, { alignItems: "center", padding: 10 }]}
-          >
+          <View style={[styles.bordered, styles.info]}>
             <Text>Stacks: {props.stacks}</Text>
             <Text>Screens: {props.screens}</Text>
-            <View style={styles.switch}>
-              <Text>Animated?</Text>
-              <Switch
-                value={options.animated}
-                onValueChange={setAnimated}
-                style={{ transform: [{ scaleX: 0.65 }, { scaleY: 0.65 }] }}
-              />
-            </View>
+            <Switch
+              label="Animated"
+              value={animated}
+              onValueChange={setAnimated}
+            />
           </View>
           <View style={styles.buttons}>
-            <TouchableOpacity
-              style={[styles.button, styles.bordered]}
+            <Button
+              text="push()"
               onPress={() =>
                 props.navigator.push(
                   {
@@ -61,20 +73,16 @@ function Component(props: {
                       color: COLOR++
                     }
                   },
-                  options
+                  { animated }
                 )
               }
-            >
-              <Text>push()</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.button, styles.bordered]}
-              onPress={() => props.navigator.pop(options)}
-            >
-              <Text>pop()</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.button, styles.bordered]}
+            />
+            <Button
+              text="pop()"
+              onPress={() => props.navigator.pop({ animated })}
+            />
+            <Button
+              text="present()"
               onPress={() =>
                 props.navigator.present(
                   {
@@ -85,20 +93,16 @@ function Component(props: {
                       color: COLOR++
                     }
                   },
-                  options
+                  { animated }
                 )
               }
-            >
-              <Text>present()</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.button, styles.bordered]}
-              onPress={() => props.navigator.dismiss(options)}
-            >
-              <Text>dismiss()</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.button, styles.bordered]}
+            />
+            <Button
+              text="dismiss()"
+              onPress={() => props.navigator.dismiss({ animated })}
+            />
+            <Button
+              text="replace()"
               onPress={() =>
                 props.navigator.replace(
                   {
@@ -109,14 +113,12 @@ function Component(props: {
                       color: COLOR++
                     }
                   },
-                  options
+                  { animated }
                 )
               }
-            >
-              <Text>replace()</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.button, styles.bordered]}
+            />
+            <Button
+              text="reset()"
               onPress={() =>
                 props.navigator.reset(
                   {
@@ -127,20 +129,21 @@ function Component(props: {
                       color: COLOR++
                     }
                   },
-                  options
+                  { animated }
                 )
               }
-            >
-              <Text>reset()</Text>
-            </TouchableOpacity>
+            />
           </View>
         </View>
       )}
-    </Options.Consumer>
+    </Consumer>
   );
 }
 
-export default class App extends React.Component<empty, OptionsConfig> {
+export default class App extends React.Component<
+  empty,
+  {| animated: boolean, setAnimated(boolean): void |}
+> {
   state = {
     animated: true,
     setAnimated: (animated: boolean) => this.setState({ animated })
@@ -148,7 +151,7 @@ export default class App extends React.Component<empty, OptionsConfig> {
 
   render() {
     return (
-      <Options.Provider value={this.state}>
+      <Provider value={this.state}>
         <View style={{ backgroundColor: "#000", flex: 1 }}>
           <Navigator
             screensConfig={{ Component }}
@@ -166,7 +169,7 @@ export default class App extends React.Component<empty, OptionsConfig> {
             ]}
           />
         </View>
-      </Options.Provider>
+      </Provider>
     );
   }
 }
@@ -186,9 +189,16 @@ const styles = StyleSheet.create({
     justifyContent: "space-evenly",
     flexWrap: "wrap"
   },
-  switch: {
+  info: {
+    alignItems: "center",
+    padding: 10
+  },
+  switchContainer: {
     flexDirection: "row",
     alignItems: "center"
+  },
+  switch: {
+    transform: [{ scaleX: 0.65 }, { scaleY: 0.65 }]
   },
   bordered: {
     backgroundColor: "#fff",

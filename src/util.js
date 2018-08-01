@@ -33,7 +33,7 @@ export function transition(
 ) {
   if (animated === false) {
     value.setValue(toValue);
-    cb && cb();
+    cb?.();
   } else {
     Animated.timing(value, {
       friction: 26,
@@ -41,7 +41,7 @@ export function transition(
       useNativeDriver: true,
       toValue
     }).start(() => {
-      cb && cb();
+      cb?.();
     });
   }
 }

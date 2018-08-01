@@ -28,6 +28,8 @@ type NavigatorScreensConfig = {
   [string]: React.ComponentType<*>
 };
 
+export type NavigatorState = Array<Array<Route>>;
+
 type Route = {| screen: string, props: Object |};
 type RouteStack = {| routes: Array<Route> |};
 
@@ -43,7 +45,8 @@ function wrap<F: Function>(fn: F): F {
 }
 
 type NavigatorProps = {|
-  initial: Route | Array<Array<Route>>,
+  initialState: Route | NavigatorState,
+  resetState?: ((state: NavigatorState) => void) => mixed,
   screensConfig: NavigatorScreensConfig
 |};
 
@@ -64,9 +67,9 @@ export default class Navigator extends React.Component<
   constructor(props: NavigatorProps) {
     super(props);
 
-    let stacks: Array<Array<Route>> = Array.isArray(props.initial)
-      ? props.initial
-      : [[props.initial]];
+    let stacks: NavigatorState = Array.isArray(props.initialState)
+      ? props.initialState
+      : [[props.initialState]];
 
     this.state = {
       stacks: stacks.map(routes => ({ routes })),
@@ -111,6 +114,12 @@ export default class Navigator extends React.Component<
         }
       }
     );
+    // $FlowFixMe
+    this.props.resetState?.(state => {
+      this.setState({ stacks: state.map(routes => ({ routes })) }, () => {
+        this.state.value.setValue(state.length - 1);
+      });
+    });
   }
 
   componentWillUnmount() {
@@ -127,7 +136,7 @@ export default class Navigator extends React.Component<
         rendered = (
           <Animated.View key={key(stack)} style={[styles.base, style]}>
             <StackNavigator
-              initial={stack.routes}
+              initialState={stack.routes}
               screensConfig={this.props.screensConfig}
               actions={this._actions}
             />
@@ -142,7 +151,7 @@ export default class Navigator extends React.Component<
 
 type StackNavigatorProps = {|
   actions: StackActions,
-  initial: Array<Route>,
+  initialState: Array<Route>,
   screensConfig: NavigatorScreensConfig
 |};
 
@@ -169,8 +178,8 @@ class StackNavigator extends React.Component<
     super(props);
 
     this.state = {
-      routes: props.initial,
-      value: new Animated.Value(props.initial.length - 1)
+      routes: props.initialState,
+      value: new Animated.Value(props.initialState.length - 1)
     };
   }
 

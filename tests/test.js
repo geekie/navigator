@@ -30,6 +30,9 @@ const screensConfig = {
 
 test("test", () => {
   ReactTestUtils.renderIntoDocument(
-    <Navigator screensConfig={screensConfig} initial={[[{ screen: "Home" }]]} />
+    <Navigator
+      screensConfig={screensConfig}
+      initialState={[[{ screen: "Home" }]]}
+    />
   );
 });

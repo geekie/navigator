@@ -9,7 +9,7 @@ import {
   View
 } from "react-native";
 import Navigator from "@geekie/navigator";
-import type { NavigatorActions } from "@geekie/navigator";
+import type { NavigatorActions, NavigatorState } from "@geekie/navigator";
 
 let COLOR = 0;
 const colors = ["#fff", "#00f", "#0f0", "#f00", "#ff0", "#f0f", "#0ff"];
@@ -44,7 +44,7 @@ function Component(props: {
 }) {
   return (
     <Consumer>
-      {({ setAnimated, animated }) => (
+      {({ setAnimated, animated, resetState }) => (
         <View
           style={[
             styles.container,
@@ -60,6 +60,23 @@ function Component(props: {
               onValueChange={setAnimated}
             />
           </View>
+          <Button
+            label="Reset everything"
+            onPress={() =>
+              resetState([
+                [
+                  {
+                    screen: "Component",
+                    props: {
+                      stacks: 999,
+                      screens: 999,
+                      color: 123
+                    }
+                  }
+                ]
+              ])
+            }
+          />
           <View style={styles.buttons}>
             <Button
               label="push()"
@@ -142,11 +159,17 @@ function Component(props: {
 
 export default class App extends React.Component<
   empty,
-  {| animated: boolean, setAnimated(boolean): void |}
+  {|
+    animated: boolean,
+    setAnimated(boolean): void,
+    resetState(NavigatorState): mixed
+  |}
 > {
+  _reset = null;
   state = {
     animated: true,
-    setAnimated: (animated: boolean) => this.setState({ animated })
+    setAnimated: (animated: boolean) => this.setState({ animated }),
+    resetState: (state: NavigatorState) => this._reset && this._reset(state)
   };
 
   render() {
@@ -155,7 +178,7 @@ export default class App extends React.Component<
         <View style={{ backgroundColor: "#000", flex: 1 }}>
           <Navigator
             screensConfig={{ Component }}
-            initial={[
+            initialState={[
               [
                 {
                   screen: "Component",
@@ -167,6 +190,7 @@ export default class App extends React.Component<
                 }
               ]
             ]}
+            resetState={reset => (this._reset = reset)}
           />
         </View>
       </Provider>

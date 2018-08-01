@@ -22,7 +22,7 @@ function Button(props) {
       style={[styles.button, styles.bordered]}
       onPress={props.onPress}
     >
-      <Text>{props.text}</Text>
+      <Text>{props.label}</Text>
     </TouchableOpacity>
   );
 }
@@ -62,7 +62,7 @@ function Component(props: {
           </View>
           <View style={styles.buttons}>
             <Button
-              text="push()"
+              label="push()"
               onPress={() =>
                 props.navigator.push(
                   {
@@ -78,11 +78,11 @@ function Component(props: {
               }
             />
             <Button
-              text="pop()"
+              label="pop()"
               onPress={() => props.navigator.pop({ animated })}
             />
             <Button
-              text="present()"
+              label="present()"
               onPress={() =>
                 props.navigator.present(
                   {
@@ -98,11 +98,11 @@ function Component(props: {
               }
             />
             <Button
-              text="dismiss()"
+              label="dismiss()"
               onPress={() => props.navigator.dismiss({ animated })}
             />
             <Button
-              text="replace()"
+              label="replace()"
               onPress={() =>
                 props.navigator.replace(
                   {
@@ -118,7 +118,7 @@ function Component(props: {
               }
             />
             <Button
-              text="reset()"
+              label="reset()"
               onPress={() =>
                 props.navigator.reset(
                   {

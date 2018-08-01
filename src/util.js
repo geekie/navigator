@@ -5,7 +5,10 @@ import { Animated, Dimensions } from "react-native";
 const SCREEN_WIDTH: number = Dimensions.get("window").width;
 const SCREEN_HEIGHT: number = Dimensions.get("window").height;
 
-const KEY_PROP = Symbol("@geekie/navigator.id");
+const KEY_PROP =
+  typeof Symbol !== "undefined"
+    ? Symbol("geekie-navigator-id")
+    : "__$geekie-navigator-id";
 let uid = 0;
 
 export function key(obj: any): string {

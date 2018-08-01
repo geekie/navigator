@@ -4,9 +4,12 @@ cache:
   yarn: true
   directories:
     - node_modules
+    - playground/node_modules
 matrix:
   - JOB=test
   - JOB=lint
+before_script:
+  - cd playground/ && yarn && cd ..
 script:
   - eslint .
   - flow check

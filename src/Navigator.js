@@ -118,6 +118,7 @@ export default class Navigator extends React.Component<
     this.props.resetState?.(state => {
       this.setState({ stacks: state.map(routes => ({ routes })) }, () => {
         this.state.value.setValue(state.length - 1);
+        lock = false;
       });
     });
   }
@@ -217,6 +218,10 @@ class StackNavigator extends React.Component<
     });
   }
 
+  /**
+   * Resets the current stack with the new screen, with an animation
+   * from the right
+   */
   pushReset(route: Route, options?: NavigatorActionOptions) {
     lock = true;
     this._pushRoute(route, options?.animated, () => {
@@ -229,7 +234,7 @@ class StackNavigator extends React.Component<
   pop(options?: NavigatorActionOptions) {
     let { routes } = this.state;
     if (routes.length === 1) {
-      this.props.actions.dismiss();
+      this.props.actions.dismiss(options);
       return;
     }
     lock = true;
@@ -265,6 +270,10 @@ class StackNavigator extends React.Component<
     });
   }
 
+  /**
+   * Resets the current stack with the new route, with an animation
+   * from the left
+   */
   reset(route: Route, options?: NavigatorActionOptions) {
     let { routes } = this.state;
     lock = true;

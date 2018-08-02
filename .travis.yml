@@ -13,4 +13,5 @@ before_script:
 script:
   - eslint .
   - flow check
-  - jest
+  - jest --coverage
+  - codecov

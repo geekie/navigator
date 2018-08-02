@@ -35,7 +35,7 @@ export function transition(
     value.setValue(toValue);
     cb?.();
   } else {
-    Animated.timing(value, {
+    Animated.spring(value, {
       friction: 26,
       tension: 200,
       useNativeDriver: true,

@@ -1,6 +1,6 @@
 import React from "react";
-import Navigator from "../src/Navigator";
 import renderer from "react-test-renderer";
+import Navigator from "../src/Navigator";
 
 jest.useFakeTimers();
 

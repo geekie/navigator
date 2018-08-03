@@ -1,6 +1,11 @@
 jest.mock("Animated", () =>
   Object.assign(require.requireActual("Animated"), {
-    View: ({ children }) => children
+    View: ({ children }) => children,
+    spring(value, { toValue }) {
+      return {
+        start: fn => fn && fn()
+      };
+    }
   })
 );
 
@@ -57,7 +62,7 @@ describe("state", () => {
 
   test("push", () => {
     let { navigator, getScreens } = render({ screen: "Foo" });
-    navigator.push({ screen: "Bar" }, { animated: false });
+    navigator.push({ screen: "Bar" });
     expect(getScreens()).toEqual(["Foo", "Bar"]);
   });
 
@@ -65,7 +70,7 @@ describe("state", () => {
     let { navigator, getScreens } = render([
       [{ screen: "Foo" }, { screen: "Bar" }]
     ]);
-    navigator.pop({ animated: false });
+    navigator.pop();
     expect(getScreens()).toEqual("Foo");
   });
 
@@ -78,7 +83,7 @@ describe("state", () => {
         { screen: "Spam" }
       ]
     ]);
-    navigator.popTo("Bar", { animated: false });
+    navigator.popTo("Bar");
     expect(getScreens()).toEqual(["Foo", "Bar"]);
   });
 
@@ -86,7 +91,7 @@ describe("state", () => {
     let { navigator, getScreens } = render([
       [{ screen: "Foo" }, { screen: "Bar" }]
     ]);
-    navigator.replace({ screen: "Baz" }, { animated: false });
+    navigator.replace({ screen: "Baz" });
     expect(getScreens()).toEqual(["Foo", "Baz"]);
   });
 
@@ -94,7 +99,7 @@ describe("state", () => {
     let { navigator, getScreens } = render([
       [{ screen: "Foo" }, { screen: "Bar" }, { screen: "Baz" }]
     ]);
-    navigator.reset({ screen: "Spam" }, { animated: false });
+    navigator.reset({ screen: "Spam" });
     expect(getScreens()).toEqual("Spam");
   });
 
@@ -102,7 +107,7 @@ describe("state", () => {
     let { navigator, getScreens } = render([
       [{ screen: "Foo" }, { screen: "Bar" }, { screen: "Baz" }]
     ]);
-    navigator.pushReset({ screen: "Spam" }, { animated: false });
+    navigator.pushReset({ screen: "Spam" });
     expect(getScreens()).toEqual("Spam");
   });
 
@@ -110,7 +115,7 @@ describe("state", () => {
     let { navigator, getScreens } = render([
       [{ screen: "Foo" }, { screen: "Bar" }]
     ]);
-    navigator.present({ screen: "Baz" }, { animated: false });
+    navigator.present({ screen: "Baz" });
     expect(getScreens()).toEqual(["Foo", "Bar", "Baz"]);
   });
 
@@ -129,7 +134,7 @@ describe("state", () => {
       [{ screen: "Foo" }],
       [{ screen: "Bar" }, { screen: "Baz" }, { screen: "Spam" }]
     ]);
-    navigator.dismiss({ animated: false });
+    navigator.dismiss();
     expect(getScreens()).toEqual("Foo");
   });
 
@@ -138,7 +143,7 @@ describe("state", () => {
       [{ screen: "Foo" }, { screen: "Bar" }],
       [{ screen: "Spam" }]
     ]);
-    navigator.pop({ animated: false });
+    navigator.pop();
     expect(getScreens()).toEqual(["Foo", "Bar"]);
   });
 });

@@ -1,106 +1,124 @@
-import React from "react";
-import renderer from "react-test-renderer";
-import Navigator from "../src/Navigator";
+jest.mock("Animated", () =>
+  Object.assign(require.requireActual("Animated"), {
+    View: props => props.children
+  })
+);
+
+import { render, clean } from "./helper";
 
 jest.useFakeTimers();
 
-describe("lock", () => {
-  let testRenderer;
-  let resetState;
+function ensureArray(obj) {
+  return Array.isArray(obj) ? obj : [obj];
+}
 
-  beforeEach(() => {
-    jest.clearAllTimers();
-    testRenderer = renderer.create(
-      <Navigator
-        resetState={_reset => (resetState = _reset)}
-        screensConfig={{
-          Screen: "Screen"
-        }}
-        initialState={[
-          [{ screen: "Screen" }, { screen: "Screen" }],
-          [{ screen: "Screen" }, { screen: "Screen" }]
-        ]}
-      />
+describe("locks during transition", () => {
+  afterEach(() => {
+    clean();
+  });
+
+  let ACTIONS = [
+    nav => nav.push({ screen: "Spam" }),
+    nav => nav.pop(),
+    nav => nav.popTo("Foo"),
+    nav => nav.present({ screen: "Spam" }),
+    nav => nav.dismiss(),
+    nav => nav.replace({ screen: "Spam" }),
+    nav => nav.reset({ screen: "Spam" }),
+    nav => nav.pushReset({ screen: "Spam" })
+  ];
+
+  function assertLock(runAction, initialState) {
+    let { navigator, toJSON } = render({ initialState });
+
+    runAction(navigator());
+    let state = toJSON();
+
+    let nav = navigator();
+    // check actions are ignored during transition
+    for (let action of ACTIONS) {
+      action(nav);
+      expect(toJSON()).toEqual(state);
+    }
+
+    jest.runAllTimers();
+
+    // check lock is free after transition
+    (state = ensureArray(toJSON())).push("Spam");
+    navigator().push({ screen: "Spam" });
+    jest.runAllTimers();
+    expect(toJSON()).toEqual(state);
+  }
+
+  test("push", () => {
+    assertLock(
+      function(navigator) {
+        navigator.push({ screen: "Bar" });
+      },
+      { screen: "Foo" }
     );
   });
 
-  afterEach(() => {
-    testRenderer.unmount();
-    testRenderer = null;
+  test("pop", () => {
+    assertLock(
+      function(navigator) {
+        navigator.pop();
+      },
+      [[{ screen: "Foo" }, { screen: "Bar" }]]
+    );
   });
 
-  function getScreens() {
-    return testRenderer.root.findAllByType("Screen");
-  }
+  test("popTo", () => {
+    assertLock(
+      function(navigator) {
+        navigator.popTo("Foo");
+      },
+      [[{ screen: "Foo" }, { screen: "Bar" }, { screen: "Baz" }]]
+    );
+  });
 
-  function getNavigator() {
-    let screens = getScreens();
-    return screens[screens.length - 1].props.navigator;
-  }
+  test("present", () => {
+    assertLock(
+      function(navigator) {
+        navigator.present({ screen: "Bar" });
+      },
+      { screen: "Foo" }
+    );
+  });
 
-  let actions = {
-    push(navigator) {
-      navigator.push({ screen: "Screen" });
-    },
-    pop(navigator) {
-      navigator.pop();
-    },
-    popTo(navigator) {
-      navigator.popTo("Screen");
-    },
-    present(navigator) {
-      navigator.present({ screen: "Screen" });
-    },
-    dismiss(navigator) {
-      navigator.dismiss();
-    },
-    replace(navigator) {
-      navigator.replace({ screen: "Screen" });
-    },
-    reset(navigator) {
-      navigator.reset({ screen: "Screen" });
-    }
-  };
+  test("dismiss", () => {
+    assertLock(
+      function(navigator) {
+        navigator.dismiss();
+      },
+      [[{ screen: "Foo" }], [{ screen: "Bar" }]]
+    );
+  });
 
-  for (let name of Object.keys(actions).sort()) {
-    test(`${name}()`, () => {
-      let count;
-      let action = actions[name];
-      let navigator = getNavigator();
+  test("replace", () => {
+    assertLock(
+      function(navigator) {
+        navigator.replace({ screen: "Baz" });
+      },
+      [[{ screen: "Foo" }, { screen: "Bar" }]]
+    );
+  });
 
-      action(navigator);
-      count = getScreens().length;
+  test("reset", () => {
+    assertLock(
+      function(navigator) {
+        navigator.reset({ screen: "Baz" });
+      },
+      [[{ screen: "Foo" }, { screen: "Bar" }]]
+    );
+  });
 
-      for (let action of Object.values(actions)) {
-        // check all actions are ignored until action is complete
-        action(navigator);
-        expect(getScreens()).toHaveLength(count);
-      }
-
-      jest.runAllTimers();
-      count = getScreens().length;
-
-      // lock is free now
-      getNavigator().push({ screen: "Screen" });
-      jest.runAllTimers();
-      expect(getScreens()).toHaveLength(count + 1);
-    });
-  }
-
-  test("reset stops all locks", () => {
-    getNavigator().push({ screen: "Screen" });
-    expect(getScreens()).toHaveLength(5);
-
-    resetState([[{ screen: "Screen" }]]);
-    expect(getScreens()).toHaveLength(1);
-
-    // push was ignored
-    jest.runAllTimers();
-    expect(getScreens()).toHaveLength(1);
-
-    // lock is free now
-    getNavigator().push({ screen: "Screen" });
-    jest.runAllTimers();
-    expect(getScreens()).toHaveLength(2);
+  test("pushReset", () => {
+    assertLock(
+      function(navigator) {
+        navigator.pushReset({ screen: "Baz" });
+      },
+      [[{ screen: "Foo" }, { screen: "Bar" }]]
+    );
   });
 });

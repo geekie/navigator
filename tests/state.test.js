@@ -3,15 +3,21 @@ jest.mock("Animated", () =>
     View: ({ children }) => children,
     spring(value, { toValue }) {
       return {
-        start: fn => fn && fn()
+        start(fn) {
+          value.setValue(toValue);
+          fn && fn();
+        }
       };
     }
   })
 );
 
+jest.mock("BackHandler");
+
 import React from "react";
-import Navigator from "../src/Navigator";
+import { BackHandler } from "react-native";
 import renderer from "react-test-renderer";
+import Navigator from "../src/Navigator";
 
 function Foo() {
   return "Foo";
@@ -34,8 +40,15 @@ function getLast(arr) {
 }
 
 describe("state", () => {
+  let testRenderer;
+
+  afterEach(() => {
+    testRenderer?.unmount();
+    testRenderer = null;
+  });
+
   function render(initialState) {
-    let testRenderer = renderer.create(
+    testRenderer = renderer.create(
       <Navigator
         screensConfig={{ Foo, Bar, Baz, Spam }}
         initialState={initialState}
@@ -145,5 +158,28 @@ describe("state", () => {
     ]);
     navigator.pop();
     expect(getScreens()).toEqual(["Foo", "Bar"]);
+  });
+
+  describe("back button", () => {
+    test("pops current screen", () => {
+      let { getScreens } = render([[{ screen: "Foo" }, { screen: "Bar" }]]);
+      BackHandler.mockPressBack();
+      expect(getScreens()).toEqual("Foo");
+    });
+
+    test("dismiss if screen is the first in stack", () => {
+      let { getScreens } = render([
+        [{ screen: "Foo" }, { screen: "Bar" }],
+        [{ screen: "Baz" }]
+      ]);
+      BackHandler.mockPressBack();
+      expect(getScreens()).toEqual(["Foo", "Bar"]);
+    });
+
+    test("exits app if single screen", () => {
+      render([[{ screen: "Foo" }]]);
+      BackHandler.mockPressBack();
+      expect(BackHandler.exitApp).toHaveBeenCalled();
+    });
   });
 });

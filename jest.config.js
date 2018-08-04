@@ -7,5 +7,6 @@ haste.defaultPlatform = "android";
 module.exports = {
   preset: "react-native",
   haste,
-  modulePathIgnorePatterns: ["<rootDir>/playground"]
+  modulePathIgnorePatterns: ["<rootDir>/playground"],
+  setupFiles: ["<rootDir>/tests/setup.js"]
 };

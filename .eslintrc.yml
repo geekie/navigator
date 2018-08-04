@@ -9,6 +9,7 @@ extends:
   - plugin:react/recommended
 env:
   es6: true
+  node: true
 rules:
   curly: error
   react/prop-types: off

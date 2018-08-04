@@ -1,0 +1,28 @@
+// @flow
+
+type Route = {| screen: string, props?: Object |};
+export type NavigatorState = Array<Array<Route>>;
+
+type NavigatorActionOptions = {|
+  animated: boolean
+|};
+export type NavigatorActions = {|
+  push(route: Route, options?: NavigatorActionOptions): void,
+  pop(options?: NavigatorActionOptions): void,
+  popTo(screen: string, options?: NavigatorActionOptions): void,
+  replace(route: Route, options?: NavigatorActionOptions): void,
+  reset(route: Route, options?: NavigatorActionOptions): void,
+  pushReset(route: Route, options?: NavigatorActionOptions): void,
+  present(route: Route, options?: NavigatorActionOptions): void,
+  dismiss(options?: NavigatorActionOptions): void
+|};
+
+declare export default React$ComponentType<
+  $Exact<{
+    initialState: Route | NavigatorState,
+    resetState?: ((state: NavigatorState) => void) => mixed,
+    screensConfig: {
+      [string]: React$ComponentType<any>
+    }
+  }>
+>

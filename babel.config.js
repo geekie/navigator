@@ -11,6 +11,7 @@ module.exports = {
         "@babel/plugin-syntax-jsx",
         "@babel/plugin-syntax-class-properties",
         "@babel/plugin-syntax-object-rest-spread",
+        "@babel/plugin-transform-flow-strip-types",
         "@babel/plugin-proposal-optional-chaining"
       ]
     }

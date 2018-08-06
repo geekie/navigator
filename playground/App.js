@@ -190,6 +190,9 @@ export default class App extends React.Component<
                 }
               ]
             ]}
+            onWillFocus={route => {
+              console.log(route, "will focus");
+            }}
             resetState={reset => (this._reset = reset)}
           />
         </View>

@@ -20,9 +20,10 @@ export type NavigatorActions = {|
 declare export default React$ComponentType<
   $Exact<{
     initialState: Route | NavigatorState,
-    resetState?: ((state: NavigatorState) => void) => mixed,
     screensConfig: {
       [string]: React$ComponentType<any>
-    }
+    },
+    onWillFocus?: (route: Route) => mixed,
+    resetState?: ((state: NavigatorState) => void) => mixed
   }>
->
+>;

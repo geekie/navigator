@@ -66,8 +66,9 @@ function makeRoute(route: Route) {
 
 type Props = {|
   initialState: Route | NavigatorState,
+  screensConfig: NavigatorScreensConfig,
   resetState?: ((state: NavigatorState) => void) => mixed,
-  screensConfig: NavigatorScreensConfig
+  onWillFocus?: (route: Route) => mixed
 |};
 type State = {|
   stacks: Array<RouteStack>
@@ -98,6 +99,14 @@ export default class Navigator extends React.Component<Props, State> {
       stacks: stacks.map(makeStack)
     };
     this._yValue = new Animated.Value(stacks.length - 1);
+
+    this._willFocus(last(last(stacks)));
+  }
+
+  _willFocus(route: Route | InternalRoute) {
+    let { screen, props } = route;
+    let { onWillFocus } = this.props;
+    onWillFocus?.({ screen, props });
   }
 
   _pushRoute(route: InternalRoute, animated?: boolean, callback: () => void) {
@@ -158,17 +167,20 @@ export default class Navigator extends React.Component<Props, State> {
 
   push(route: Route, options?: NavigatorActionOptions) {
     lock = true;
+    this._willFocus(route);
     this._pushRoute(makeRoute(route), options?.animated, () => {
       lock = false;
     });
   }
 
   pop(options?: NavigatorActionOptions) {
-    if (last(this.state.stacks).routes.length === 1) {
+    const { routes } = last(this.state.stacks);
+    if (routes.length === 1) {
       this.dismiss(options);
       return;
     }
 
+    this._willFocus(routes[routes.length - 2]);
     lock = true;
     this._popRoutes(1, options?.animated, () => {
       lock = false;
@@ -183,6 +195,7 @@ export default class Navigator extends React.Component<Props, State> {
     }
 
     lock = true;
+    this._willFocus(routes[index]);
     this._popRoutes(routes.length - index - 1, options?.animated, () => {
       lock = false;
     });
@@ -190,6 +203,7 @@ export default class Navigator extends React.Component<Props, State> {
 
   replace(route: Route, options?: NavigatorActionOptions) {
     lock = true;
+    this._willFocus(route);
     let _route = makeRoute(route);
     this._pushRoute(_route, options?.animated, () => {
       this._setStackRoutes(
@@ -238,6 +252,7 @@ export default class Navigator extends React.Component<Props, State> {
 
   present(routes: Route | Array<Route>, options?: NavigatorActionOptions) {
     lock = true;
+    this._willFocus(Array.isArray(routes) ? last(routes) : routes);
     this.setState(
       update(function({ stacks }: State): void {
         stacks.push(makeStack(routes));
@@ -261,6 +276,7 @@ export default class Navigator extends React.Component<Props, State> {
       return;
     }
     lock = true;
+    this._willFocus(last(stacks[stacks.length - 2].routes));
     transition(this._yValue, stacks.length - 2, options?.animated, () => {
       this.setState({ stacks: stacks.slice(0, -1) }, () => {
         lock = false;

@@ -1,7 +1,5 @@
 /** @flow */
 
-"use strict";
-
 import * as React from "react";
 import { Animated, BackHandler, StyleSheet } from "react-native";
 import update from "immer";

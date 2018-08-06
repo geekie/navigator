@@ -6,7 +6,6 @@ describe("onWillFocus", () => {
   let onWillFocus = jest.fn();
   let count = 1;
   let navigator;
-  let toJSON;
 
   let fooScreen = { screen: "Foo", props: { foo: "foo" } };
   let barScreen = { screen: "Bar", props: { bar: "bar" } };
@@ -17,8 +16,12 @@ describe("onWillFocus", () => {
     jest.runAllTimers();
   });
 
+  afterAll(() => {
+    clean();
+  });
+
   test("is called on mount", () => {
-    ({ toJSON, navigator } = render({
+    ({ navigator } = render({
       initialState: fooScreen,
       onWillFocus
     }));

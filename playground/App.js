@@ -1,5 +1,7 @@
 /** @flow */
 
+/* eslint-disable no-console */
+
 import React from "react";
 import {
   Switch as RNSwitch,

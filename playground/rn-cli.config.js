@@ -6,7 +6,9 @@ const blacklist = require("metro/src/blacklist");
 module.exports = {
   getBlacklistRE() {
     return blacklist([
-      new RegExp(path.join(__dirname, "..", "node_modules", "(?!immer).*"))
+      new RegExp(
+        path.join(__dirname, "..", "node_modules", "(react|react-native)", ".*")
+      )
     ]);
   },
   extraNodeModules: {

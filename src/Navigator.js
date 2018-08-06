@@ -2,9 +2,11 @@
 
 import * as React from "react";
 import { Animated, BackHandler, StyleSheet } from "react-native";
-import update from "immer";
-import { animations, transition } from "./util";
+import produce from "immer";
 import hoistNonReactStatics from "hoist-non-react-statics";
+
+import * as animations from "./animations";
+import { last, lock, uid } from "./utils";
 
 export type NavigatorActions = {|
   push(route: Route, options?: NavigatorActionOptions): void,
@@ -35,32 +37,44 @@ type RouteStack = {|
   routes: Array<InternalRoute>
 |};
 
-let lock = false;
+let { Provider, Consumer } = React.createContext();
 
-function wrap<F: Function>(fn: F): F {
-  // $FlowFixMe
-  return function() {
-    if (!lock) {
-      fn.apply(null, arguments);
-    }
-  };
-}
-
-function last<T>(arr: Array<T>): T {
-  return arr[arr.length - 1];
-}
-
-let uid = 0;
 function makeStack(routes: Route | Array<Route>): RouteStack {
   routes = Array.isArray(routes) ? routes : [routes];
   return {
-    key: "stack_" + uid++,
+    key: "stack_" + uid(),
     routes: routes.map(makeRoute),
     value: new Animated.Value(routes.length - 1)
   };
 }
-function makeRoute(route: Route) {
-  return { ...route, key: "screen_" + uid++ };
+
+function makeRoute({ screen, props }: Route) {
+  return {
+    key: "screen_" + uid(),
+    screen,
+    props
+  };
+}
+
+function transition(
+  value: Animated.Value,
+  toValue: number,
+  animated: boolean | void,
+  cb?: () => any
+) {
+  if (animated === false) {
+    value.setValue(toValue);
+    cb?.();
+  } else {
+    Animated.spring(value, {
+      friction: 26,
+      tension: 200,
+      useNativeDriver: true,
+      toValue
+    }).start(() => {
+      cb?.();
+    });
+  }
 }
 
 type Props = {|
@@ -69,22 +83,20 @@ type Props = {|
   resetState?: ((state: NavigatorState) => void) => mixed,
   onWillFocus?: (route: Route) => mixed
 |};
-type State = {|
+type State = $Exact<{
   stacks: Array<RouteStack>
-|};
-
-let { Provider, Consumer } = React.createContext();
+}>;
 
 export default class Navigator extends React.Component<Props, State> {
   _actions: NavigatorActions = {
-    push: wrap(this.push.bind(this)),
-    pop: wrap(this.pop.bind(this)),
-    popTo: wrap(this.popTo.bind(this)),
-    replace: wrap(this.replace.bind(this)),
-    reset: wrap(this.reset.bind(this)),
-    pushReset: wrap(this.pushReset.bind(this)),
-    present: wrap(this.present.bind(this)),
-    dismiss: wrap(this.dismiss.bind(this))
+    push: this.push.bind(this),
+    pop: this.pop.bind(this),
+    popTo: this.popTo.bind(this),
+    replace: this.replace.bind(this),
+    reset: this.reset.bind(this),
+    pushReset: this.pushReset.bind(this),
+    present: this.present.bind(this),
+    dismiss: this.dismiss.bind(this)
   };
   _subscription: ?{ remove(): void };
   _yValue: Animated.Value;
@@ -104,15 +116,15 @@ export default class Navigator extends React.Component<Props, State> {
     this._willFocus(last(last(stacks)));
   }
 
-  _willFocus(route: Route | InternalRoute) {
-    let { screen, props } = route;
-    let { onWillFocus } = this.props;
-    onWillFocus?.({ screen, props });
+  _willFocus({ screen, props }: Route | InternalRoute) {
+    if (this.props.onWillFocus) {
+      this.props.onWillFocus({ screen, props });
+    }
   }
 
   _pushRoute(route: InternalRoute, animated?: boolean, callback: () => void) {
     this.setState(
-      update(function({ stacks }: State): void {
+      produce(function({ stacks }: State): void {
         last(stacks).routes.push(route);
       }),
       () => {
@@ -126,7 +138,7 @@ export default class Navigator extends React.Component<Props, State> {
 
   _popRoutes(n: number, animated?: boolean, callback: () => void) {
     this.setState(
-      update(function({ stacks }: State): void {
+      produce(function({ stacks }: State): void {
         last(stacks).routes.splice(-n, n - 1);
       }),
       () => {
@@ -134,7 +146,7 @@ export default class Navigator extends React.Component<Props, State> {
         value.setValue(routes.length - 1);
         transition(value, routes.length - 2, animated, () => {
           this.setState(
-            update(function({ stacks }: State): void {
+            produce(function({ stacks }: State): void {
               last(stacks).routes.pop();
             }),
             () => {
@@ -151,7 +163,7 @@ export default class Navigator extends React.Component<Props, State> {
     callback: () => void
   ) {
     this.setState(
-      update(function({ stacks }: State): void {
+      produce(function({ stacks }: State): void {
         let stack = last(stacks);
         let routes = modify(stack.routes);
         if (routes) {
@@ -167,11 +179,12 @@ export default class Navigator extends React.Component<Props, State> {
   }
 
   push(route: Route, options?: NavigatorActionOptions) {
-    lock = true;
-    this._willFocus(route);
-    this._pushRoute(makeRoute(route), options?.animated, () => {
-      lock = false;
-    });
+    if (lock.acquire()) {
+      this._willFocus(route);
+      this._pushRoute(makeRoute(route), options?.animated, () => {
+        lock.release();
+      });
+    }
   }
 
   pop(options?: NavigatorActionOptions) {
@@ -181,11 +194,12 @@ export default class Navigator extends React.Component<Props, State> {
       return;
     }
 
-    this._willFocus(routes[routes.length - 2]);
-    lock = true;
-    this._popRoutes(1, options?.animated, () => {
-      lock = false;
-    });
+    if (lock.acquire()) {
+      this._willFocus(routes[routes.length - 2]);
+      this._popRoutes(1, options?.animated, () => {
+        lock.release();
+      });
+    }
   }
 
   popTo(screen: string, options?: NavigatorActionOptions) {
@@ -195,24 +209,26 @@ export default class Navigator extends React.Component<Props, State> {
       return;
     }
 
-    lock = true;
-    this._willFocus(routes[index]);
-    this._popRoutes(routes.length - index - 1, options?.animated, () => {
-      lock = false;
-    });
+    if (lock.acquire()) {
+      this._willFocus(routes[index]);
+      this._popRoutes(routes.length - index - 1, options?.animated, () => {
+        lock.release();
+      });
+    }
   }
 
   replace(route: Route, options?: NavigatorActionOptions) {
-    lock = true;
+    if (!lock.acquire()) {
+      return;
+    }
     this._willFocus(route);
-    let _route = makeRoute(route);
-    this._pushRoute(_route, options?.animated, () => {
+    this._pushRoute(makeRoute(route), options?.animated, () => {
       this._setStackRoutes(
         routes => {
           routes.splice(-2, 1);
         },
         () => {
-          lock = false;
+          lock.release();
         }
       );
     });
@@ -223,12 +239,15 @@ export default class Navigator extends React.Component<Props, State> {
    * from the left
    */
   reset(route: Route, options?: NavigatorActionOptions) {
-    lock = true;
+    if (!lock.acquire()) {
+      return;
+    }
+    this._willFocus(route);
     this._setStackRoutes(
       routes => [makeRoute(route), routes[routes.length - 1]],
       () => {
         this._popRoutes(1, options?.animated, () => {
-          lock = false;
+          lock.release();
         });
       }
     );
@@ -239,23 +258,27 @@ export default class Navigator extends React.Component<Props, State> {
    * from the right
    */
   pushReset(route: Route, options?: NavigatorActionOptions) {
-    lock = true;
-    let _route = makeRoute(route);
-    this._pushRoute(_route, options?.animated, () => {
+    if (!lock.acquire()) {
+      return;
+    }
+    this._willFocus(route);
+    this._pushRoute(makeRoute(route), options?.animated, () => {
       this._setStackRoutes(
-        () => [_route],
+        routes => [last(routes)],
         () => {
-          lock = false;
+          lock.release();
         }
       );
     });
   }
 
   present(routes: Route | Array<Route>, options?: NavigatorActionOptions) {
-    lock = true;
+    if (!lock.acquire()) {
+      return;
+    }
     this._willFocus(Array.isArray(routes) ? last(routes) : routes);
     this.setState(
-      update(function({ stacks }: State): void {
+      produce(function({ stacks }: State): void {
         stacks.push(makeStack(routes));
       }),
       () => {
@@ -264,7 +287,7 @@ export default class Navigator extends React.Component<Props, State> {
           this.state.stacks.length - 1,
           options?.animated,
           () => {
-            lock = false;
+            lock.release();
           }
         );
       }
@@ -276,13 +299,15 @@ export default class Navigator extends React.Component<Props, State> {
     if (stacks.length === 1) {
       return;
     }
-    lock = true;
-    this._willFocus(last(stacks[stacks.length - 2].routes));
-    transition(this._yValue, stacks.length - 2, options?.animated, () => {
-      this.setState({ stacks: stacks.slice(0, -1) }, () => {
-        lock = false;
+
+    if (lock.acquire()) {
+      this._willFocus(last(stacks[stacks.length - 2].routes));
+      transition(this._yValue, stacks.length - 2, options?.animated, () => {
+        this.setState({ stacks: stacks.slice(0, -1) }, () => {
+          lock.release();
+        });
       });
-    });
+    }
   }
 
   componentDidMount() {
@@ -296,18 +321,21 @@ export default class Navigator extends React.Component<Props, State> {
         }
       }
     );
-    // $FlowFixMe
-    this.props.resetState?.(state => {
-      this.setState({ stacks: state.map(makeStack) }, () => {
-        this._yValue.setValue(state.length - 1);
-        lock = false;
+
+    if (this.props.resetState) {
+      this.props.resetState(state => {
+        this.setState({ stacks: state.map(makeStack) }, () => {
+          this._yValue.setValue(state.length - 1);
+          lock.release();
+        });
       });
-    });
+    }
   }
 
   componentWillUnmount() {
-    // $FlowFixMe
-    this._subscription?.remove();
+    if (this._subscription) {
+      this._subscription.remove();
+    }
   }
 
   render() {

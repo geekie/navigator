@@ -8,10 +8,9 @@ module.exports = {
     production: {
       plugins: [
         "@babel/plugin-syntax-flow",
+        "@babel/plugin-transform-flow-strip-types",
         "@babel/plugin-syntax-jsx",
         "@babel/plugin-syntax-class-properties",
-        "@babel/plugin-syntax-object-rest-spread",
-        "@babel/plugin-transform-flow-strip-types",
         "@babel/plugin-proposal-optional-chaining"
       ]
     }

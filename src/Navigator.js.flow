@@ -1,12 +1,15 @@
 // @flow
 
-type Route = {| screen: string, props?: Object |};
+type Route = $Exact<{
+  screen: string,
+  props?: Object
+}>;
 export type NavigatorState = Array<Array<Route>>;
 
-type NavigatorActionOptions = {|
+type NavigatorActionOptions = $Exact<{
   animated: boolean
-|};
-export type NavigatorActions = {|
+}>;
+export type NavigatorActions = $Exact<{
   push(route: Route, options?: NavigatorActionOptions): void,
   pop(options?: NavigatorActionOptions): void,
   popTo(screen: string, options?: NavigatorActionOptions): void,
@@ -15,7 +18,7 @@ export type NavigatorActions = {|
   pushReset(route: Route, options?: NavigatorActionOptions): void,
   present(route: Route, options?: NavigatorActionOptions): void,
   dismiss(options?: NavigatorActionOptions): void
-|};
+}>;
 
 declare export default React$ComponentType<
   $Exact<{

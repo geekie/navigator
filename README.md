@@ -35,9 +35,7 @@ yarn add @geekie/navigator
 
 The navigation with this library is built on the concept of "stacks", which are a stack of screens of the app. You can present a new stack and push screens onto it when dismissing it, the navigation state returns to the last screen pushed to the previous stack. Below there's an image as an example:
 
-<p align="center">
-![Stacks example](https://user-images.githubusercontent.com/1574588/43719589-7a22ba5c-9964-11e8-98b4-067ed320a203.png)
-</p>
+![Stacks chart](https://user-images.githubusercontent.com/1574588/43719589-7a22ba5c-9964-11e8-98b4-067ed320a203.png)
 
 The blue arrows are pushing new screens to a stack, the green arrow is presenting a new stack with a screen on it, and the red arrow is dismissing a whole stack and coming to back to the state right before presenting the new stack.
 

@@ -20,6 +20,10 @@ export type NavigatorActions = $Exact<{
   dismiss(options?: NavigatorActionOptions): void
 }>;
 
+declare export function withNavigator<Props: {}>(
+  Component: React$ComponentType<Props>
+): React$ComponentType<$Diff<Props, { navigator: NavigatorActions | void }>>;
+
 declare export default React$ComponentType<
   $Exact<{
     initialState: Route | NavigatorState,

@@ -10,7 +10,7 @@ import {
   TouchableOpacity,
   View
 } from "react-native";
-import Navigator from "@geekie/navigator";
+import Navigator, { withNavigator } from "@geekie/navigator";
 import type { NavigatorActions, NavigatorState } from "@geekie/navigator";
 
 let COLOR = 0;
@@ -38,6 +38,95 @@ function Switch({ label, ...props }) {
   );
 }
 
+function ActionButtons(props: {
+  navigator: NavigatorActions,
+  stacks: number,
+  screens: number
+}) {
+  return (
+    <Consumer>
+      {({ animated }) => (
+        <View style={styles.buttons}>
+          <Button
+            label="push()"
+            onPress={() =>
+              props.navigator.push(
+                {
+                  screen: "Component",
+                  props: {
+                    stacks: props.stacks,
+                    screens: props.screens + 1,
+                    color: COLOR++
+                  }
+                },
+                { animated }
+              )
+            }
+          />
+          <Button
+            label="pop()"
+            onPress={() => props.navigator.pop({ animated })}
+          />
+          <Button
+            label="present()"
+            onPress={() =>
+              props.navigator.present(
+                {
+                  screen: "Component",
+                  props: {
+                    stacks: props.stacks + 1,
+                    screens: 1,
+                    color: COLOR++
+                  }
+                },
+                { animated }
+              )
+            }
+          />
+          <Button
+            label="dismiss()"
+            onPress={() => props.navigator.dismiss({ animated })}
+          />
+          <Button
+            label="replace()"
+            onPress={() =>
+              props.navigator.replace(
+                {
+                  screen: "Component",
+                  props: {
+                    stacks: props.stacks,
+                    screens: props.screens,
+                    color: COLOR++
+                  }
+                },
+                { animated }
+              )
+            }
+          />
+          <Button
+            label="reset()"
+            onPress={() =>
+              props.navigator.reset(
+                {
+                  screen: "Component",
+                  props: {
+                    stacks: props.stacks,
+                    screens: 1,
+                    color: COLOR++
+                  }
+                },
+                { animated }
+              )
+            }
+          />
+        </View>
+      )}
+    </Consumer>
+  );
+}
+
+const ActionButtonsWithNavigator = withNavigator(ActionButtons);
+
 function Component(props: {
   navigator: NavigatorActions,
   color: number,
@@ -46,7 +135,7 @@ function Component(props: {
 }) {
   return (
     <Consumer>
-      {({ setAnimated, animated, resetState }) => (
+      {ctx => (
         <View
           style={[
             styles.container,
@@ -58,14 +147,19 @@ function Component(props: {
             <Text>Screens: {props.screens}</Text>
             <Switch
               label="Animated"
-              value={animated}
-              onValueChange={setAnimated}
+              value={ctx.animated}
+              onValueChange={ctx.setAnimated}
+            />
+            <Switch
+              label="Use HOC"
+              value={ctx.useHOC}
+              onValueChange={ctx.setUseHOC}
             />
           </View>
           <Button
             label="Reset everything"
             onPress={() =>
-              resetState([
+              ctx.resetState([
                 [
                   {
                     screen: "Component",
@@ -79,80 +173,18 @@ function Component(props: {
               ])
             }
           />
-          <View style={styles.buttons}>
-            <Button
-              label="push()"
-              onPress={() =>
-                props.navigator.push(
-                  {
-                    screen: "Component",
-                    props: {
-                      stacks: props.stacks,
-                      screens: props.screens + 1,
-                      color: COLOR++
-                    }
-                  },
-                  { animated }
-                )
-              }
+          {ctx.useHOC ? (
+            <ActionButtonsWithNavigator
+              stacks={props.stacks}
+              screens={props.screens}
             />
-            <Button
-              label="pop()"
-              onPress={() => props.navigator.pop({ animated })}
+          ) : (
+            <ActionButtons
+              navigator={props.navigator}
+              stacks={props.stacks}
+              screens={props.screens}
             />
-            <Button
-              label="present()"
-              onPress={() =>
-                props.navigator.present(
-                  {
-                    screen: "Component",
-                    props: {
-                      stacks: props.stacks + 1,
-                      screens: 1,
-                      color: COLOR++
-                    }
-                  },
-                  { animated }
-                )
-              }
-            />
-            <Button
-              label="dismiss()"
-              onPress={() => props.navigator.dismiss({ animated })}
-            />
-            <Button
-              label="replace()"
-              onPress={() =>
-                props.navigator.replace(
-                  {
-                    screen: "Component",
-                    props: {
-                      stacks: props.stacks,
-                      screens: props.screens,
-                      color: COLOR++
-                    }
-                  },
-                  { animated }
-                )
-              }
-            />
-            <Button
-              label="reset()"
-              onPress={() =>
-                props.navigator.reset(
-                  {
-                    screen: "Component",
-                    props: {
-                      stacks: props.stacks,
-                      screens: 1,
-                      color: COLOR++
-                    }
-                  },
-                  { animated }
-                )
-              }
-            />
-          </View>
+          )}
         </View>
       )}
     </Consumer>
@@ -163,14 +195,18 @@ export default class App extends React.Component<
   empty,
   {|
     animated: boolean,
+    useHOC: boolean,
     setAnimated(boolean): void,
+    setUseHOC(boolean): void,
     resetState(NavigatorState): mixed
   |}
 > {
   _reset = null;
   state = {
     animated: true,
+    useHOC: false,
     setAnimated: (animated: boolean) => this.setState({ animated }),
+    setUseHOC: (useHOC: boolean) => this.setState({ useHOC }),
     resetState: (state: NavigatorState) => this._reset && this._reset(state)
   };
 

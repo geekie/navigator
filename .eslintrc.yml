@@ -7,12 +7,15 @@ extends:
   - eslint:recommended
   - plugin:prettier/recommended
   - plugin:react/recommended
+plugins:
+  - flowtype
 env:
   es6: true
   node: true
 rules:
   curly: error
   react/prop-types: off
+  flowtype/define-flow-type: warn
 overrides:
   - files:
       - babel.config.js

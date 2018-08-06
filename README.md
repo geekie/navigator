@@ -100,6 +100,10 @@ class App extends React.Component {
 
 The components rendered will receive a `navigator` prop that contains the commands to navigate through screens.
 
+### `withNavigator(Component)`
+
+`withNavigator` is a higher order component that injects the `navigator` prop to the wrapped `Component`. This is useful if you need it in a deeply nested component or you can't pass the prop from the screen component.
+
 ### `navigator.present(route)` or `navigator.present(routes)`
 
 Presents a new stack: if the argument is an array, will use that as the stack; if not an array, it will be equivalent as calling `navigator.present([route])`.

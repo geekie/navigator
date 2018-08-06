@@ -6,6 +6,7 @@ import * as React from "react";
 import { Animated, BackHandler, StyleSheet } from "react-native";
 import update from "immer";
 import { animations, transition } from "./util";
+import hoistNonReactStatics from "hoist-non-react-statics";
 
 export type NavigatorActions = {|
   push(route: Route, options?: NavigatorActionOptions): void,
@@ -73,6 +74,8 @@ type Props = {|
 type State = {|
   stacks: Array<RouteStack>
 |};
+
+let { Provider, Consumer } = React.createContext();
 
 export default class Navigator extends React.Component<Props, State> {
   _actions: NavigatorActions = {
@@ -311,26 +314,51 @@ export default class Navigator extends React.Component<Props, State> {
 
   render() {
     let { stacks } = this.state;
-    return stacks.map((stack, i) => {
-      let style = animations.vertical(this._yValue, i);
-      return (
-        <Animated.View key={stack.key} style={[styles.base, style]}>
-          {stack.routes.map((route, j) => {
-            let Component = this.props.screensConfig[route.screen];
-            let style = animations.horizontal(stack.value, j);
-            return (
-              <Animated.View key={route.key} style={[styles.base, style]}>
-                <Component navigator={this._actions} {...route.props} />
-              </Animated.View>
-            );
-          })}
-        </Animated.View>
-      );
-    });
+    return (
+      <Provider value={this._actions}>
+        {stacks.map((stack, i) => {
+          let style = animations.vertical(this._yValue, i);
+          return (
+            <Animated.View key={stack.key} style={[styles.base, style]}>
+              {stack.routes.map((route, j) => {
+                let Component = this.props.screensConfig[route.screen];
+                let style = animations.horizontal(stack.value, j);
+                return (
+                  <Animated.View key={route.key} style={[styles.base, style]}>
+                    <Component navigator={this._actions} {...route.props} />
+                  </Animated.View>
+                );
+              })}
+            </Animated.View>
+          );
+        })}
+      </Provider>
+    );
   }
 }
-//
-//
+
+export function withNavigator<Props: {}>(
+  Component: React.ComponentType<Props>
+): React.ComponentType<$Diff<Props, { navigator: NavigatorActions | void }>> {
+  class WithNavigator extends React.Component<Props> {
+    render() {
+      return (
+        <Consumer>
+          {navigator => {
+            if (!navigator) {
+              throw Error(
+                "`withNavigation` can only be used when rendered by the `Navigator`. " +
+                  "Unable to access the `navigator` prop."
+              );
+            }
+            return <Component navigator={navigator} {...this.props} />;
+          }}
+        </Consumer>
+      );
+    }
+  }
+  return hoistNonReactStatics(WithNavigator, Component);
+}
 
 const styles = StyleSheet.create({
   base: {

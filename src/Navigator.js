@@ -25,7 +25,10 @@ type RouteStack = {|
   routes: Array<InternalRoute>
 |};
 
-const { Provider, Consumer }: React.Context<Actions | void> = React.createContext();
+const {
+  Provider,
+  Consumer
+}: React.Context<Actions | void> = React.createContext();
 
 function makeStack(routes: Route | Array<Route>): RouteStack {
   routes = Array.isArray(routes) ? routes : [routes];

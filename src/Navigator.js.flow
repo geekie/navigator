@@ -1,36 +1,38 @@
 // @flow
 
-type Route = $Exact<{
+export type NavigatorRoute = $Exact<{
   screen: string,
   props?: Object
 }>;
-export type NavigatorState = Array<Array<Route>>;
+export type NavigatorState = Array<Array<NavigatorRoute>>;
 
-type NavigatorActionOptions = $Exact<{
+type Options = $Exact<{
   animated: boolean
 }>;
 export type NavigatorActions = $Exact<{
-  push(route: Route, options?: NavigatorActionOptions): void,
-  pop(options?: NavigatorActionOptions): void,
-  popTo(screen: string, options?: NavigatorActionOptions): void,
-  replace(route: Route, options?: NavigatorActionOptions): void,
-  reset(route: Route, options?: NavigatorActionOptions): void,
-  pushReset(route: Route, options?: NavigatorActionOptions): void,
-  present(route: Route, options?: NavigatorActionOptions): void,
-  dismiss(options?: NavigatorActionOptions): void
+  push(route: NavigatorRoute, options?: Options): void,
+  pop(options?: Options): void,
+  popTo(screen: string, options?: Options): void,
+  replace(route: NavigatorRoute, options?: Options): void,
+  reset(route: NavigatorRoute, options?: Options): void,
+  pushReset(route: NavigatorRoute, options?: Options): void,
+  present(route: NavigatorRoute, options?: Options): void,
+  dismiss(options?: Options): void
 }>;
+
+export type NavigatorScreensConfig = {
+  [string]: React$ComponentType<any>
+};
+
+declare export default React$ComponentType<
+  $Exact<{
+    initialState: NavigatorRoute | NavigatorState,
+    screensConfig: NavigatorScreensConfig,
+    onWillFocus?: (route: NavigatorRoute) => mixed,
+    resetState?: ((state: NavigatorState) => void) => mixed
+  }>
+>;
 
 declare export function withNavigator<Props: {}>(
   Component: React$ComponentType<Props>
 ): React$ComponentType<$Diff<Props, { navigator: NavigatorActions | void }>>;
-
-declare export default React$ComponentType<
-  $Exact<{
-    initialState: Route | NavigatorState,
-    screensConfig: {
-      [string]: React$ComponentType<any>
-    },
-    onWillFocus?: (route: Route) => mixed,
-    resetState?: ((state: NavigatorState) => void) => mixed
-  }>
->;

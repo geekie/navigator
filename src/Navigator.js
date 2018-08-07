@@ -5,31 +5,19 @@ import { Animated, BackHandler, StyleSheet } from "react-native";
 import produce from "immer";
 import hoistNonReactStatics from "hoist-non-react-statics";
 
+import type {
+  NavigatorActions as Actions,
+  NavigatorScreensConfig as ScreensConfig,
+  NavigatorState,
+  NavigatorRoute as Route
+} from "./Navigator.js.flow";
 import * as animations from "./animations";
 import { last, lock, uid } from "./utils";
 
-export type NavigatorActions = {|
-  push(route: Route, options?: NavigatorActionOptions): void,
-  pop(options?: NavigatorActionOptions): void,
-  popTo(screen: string, options?: NavigatorActionOptions): void,
-  replace(route: Route, options?: NavigatorActionOptions): void,
-  reset(route: Route, options?: NavigatorActionOptions): void,
-  pushReset(route: Route, options?: NavigatorActionOptions): void,
-  present(route: Route, options?: NavigatorActionOptions): void,
-  dismiss(options?: NavigatorActionOptions): void
-|};
-
-type NavigatorActionOptions = {|
+type Options = {|
   animated: boolean
 |};
 
-type NavigatorScreensConfig = {
-  [string]: React.ComponentType<*>
-};
-
-export type NavigatorState = Array<Array<Route>>;
-
-type Route = {| screen: string, props?: Object |};
 type InternalRoute = {| key: string, ...Route |};
 type RouteStack = {|
   key: string,
@@ -79,7 +67,7 @@ function transition(
 
 type Props = {|
   initialState: Route | NavigatorState,
-  screensConfig: NavigatorScreensConfig,
+  screensConfig: ScreensConfig,
   resetState?: ((state: NavigatorState) => void) => mixed,
   onWillFocus?: (route: Route) => mixed
 |};
@@ -88,7 +76,7 @@ type State = $Exact<{
 }>;
 
 export default class Navigator extends React.Component<Props, State> {
-  _actions: NavigatorActions = {
+  _actions: Actions = {
     push: this.push.bind(this),
     pop: this.pop.bind(this),
     popTo: this.popTo.bind(this),
@@ -178,7 +166,7 @@ export default class Navigator extends React.Component<Props, State> {
     );
   }
 
-  push(route: Route, options?: NavigatorActionOptions) {
+  push(route: Route, options?: Options) {
     if (lock.acquire()) {
       this._willFocus(route);
       this._pushRoute(makeRoute(route), options?.animated, () => {
@@ -187,7 +175,7 @@ export default class Navigator extends React.Component<Props, State> {
     }
   }
 
-  pop(options?: NavigatorActionOptions) {
+  pop(options?: Options) {
     const { routes } = last(this.state.stacks);
     if (routes.length === 1) {
       this.dismiss(options);
@@ -202,7 +190,7 @@ export default class Navigator extends React.Component<Props, State> {
     }
   }
 
-  popTo(screen: string, options?: NavigatorActionOptions) {
+  popTo(screen: string, options?: Options) {
     let { routes } = last(this.state.stacks);
     let index = routes.findIndex(route => route.screen === screen);
     if (routes.length === 1 || index === -1) {
@@ -217,7 +205,7 @@ export default class Navigator extends React.Component<Props, State> {
     }
   }
 
-  replace(route: Route, options?: NavigatorActionOptions) {
+  replace(route: Route, options?: Options) {
     if (!lock.acquire()) {
       return;
     }
@@ -238,7 +226,7 @@ export default class Navigator extends React.Component<Props, State> {
    * Resets the current stack with the new route, with an animation
    * from the left
    */
-  reset(route: Route, options?: NavigatorActionOptions) {
+  reset(route: Route, options?: Options) {
     if (!lock.acquire()) {
       return;
     }
@@ -257,7 +245,7 @@ export default class Navigator extends React.Component<Props, State> {
    * Resets the current stack with the new screen, with an animation
    * from the right
    */
-  pushReset(route: Route, options?: NavigatorActionOptions) {
+  pushReset(route: Route, options?: Options) {
     if (!lock.acquire()) {
       return;
     }
@@ -272,7 +260,7 @@ export default class Navigator extends React.Component<Props, State> {
     });
   }
 
-  present(routes: Route | Array<Route>, options?: NavigatorActionOptions) {
+  present(routes: Route | Array<Route>, options?: Options) {
     if (!lock.acquire()) {
       return;
     }
@@ -294,7 +282,7 @@ export default class Navigator extends React.Component<Props, State> {
     );
   }
 
-  dismiss(options?: NavigatorActionOptions) {
+  dismiss(options?: Options) {
     let { stacks } = this.state;
     if (stacks.length === 1) {
       return;
@@ -365,7 +353,7 @@ export default class Navigator extends React.Component<Props, State> {
 
 export function withNavigator<Props: {}>(
   Component: React.ComponentType<Props>
-): React.ComponentType<$Diff<Props, { navigator: NavigatorActions | void }>> {
+): React.ComponentType<$Diff<Props, { navigator: Actions | void }>> {
   class WithNavigator extends React.Component<Props> {
     render() {
       return (

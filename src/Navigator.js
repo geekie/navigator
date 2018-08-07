@@ -25,7 +25,7 @@ type RouteStack = {|
   routes: Array<InternalRoute>
 |};
 
-let { Provider, Consumer } = React.createContext();
+const { Provider, Consumer }: React.Context<Actions | void> = React.createContext();
 
 function makeStack(routes: Route | Array<Route>): RouteStack {
   routes = Array.isArray(routes) ? routes : [routes];
@@ -372,6 +372,17 @@ export function withNavigator<Props: {}>(
     }
   }
   return hoistNonReactStatics(WithNavigator, Component);
+}
+
+export class NavigatorProvider extends React.Component<{
+  navigator: Actions,
+  children: React.Node
+}> {
+  render() {
+    return (
+      <Provider value={this.props.navigator}>{this.props.children}</Provider>
+    );
+  }
 }
 
 const styles = StyleSheet.create({

@@ -1,3 +1,0 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
-
-exports[`withNavigator HOC throws when outside of navigator hierarchy 1`] = `"\`withNavigation\` can only be used when rendered by the \`Navigator\`. Unable to access the \`navigator\` prop."`;

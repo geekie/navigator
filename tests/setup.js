@@ -1,5 +1,3 @@
-/* eslint-disable no-console */
-
 let warn = console.warn;
 
 console.warn = function(message) {

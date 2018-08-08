@@ -365,8 +365,8 @@ export function withNavigator<Props: {}>(
       return (
         <Consumer>
           {navigator => {
-            if (!navigator) {
-              throw Error(
+            if (__DEV__ && !navigator) {
+              console.warn(
                 "`withNavigation` can only be used when rendered by the `Navigator`. " +
                   "Unable to access the `navigator` prop."
               );

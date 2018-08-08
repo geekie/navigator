@@ -33,10 +33,6 @@ let screensConfig = {
 };
 
 describe("withNavigator HOC", () => {
-  test("throws when outside of navigator hierarchy", () => {
-    expect(() => renderer.create(<Foo />)).toThrowErrorMatchingSnapshot();
-  });
-
   test("injects the navigator prop", () => {
     let tree = renderer.create(
       <Navigator

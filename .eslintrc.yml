@@ -12,8 +12,11 @@ plugins:
 env:
   es6: true
   node: true
+globals:
+  __DEV__: false
 rules:
   curly: error
+  no-console: off
   react/prop-types: off
   flowtype/define-flow-type: warn
 overrides:
@@ -24,6 +27,6 @@ overrides:
     env:
       node: true
   - files:
-     - tests/*.js
+      - tests/*.js
     env:
       jest: true

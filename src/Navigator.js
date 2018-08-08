@@ -358,7 +358,7 @@ export function withNavigator<Props: {}>(
   Component: React.ComponentType<Props>
 ): React.ComponentType<$Diff<Props, { navigator: Actions | void }>> {
   class WithNavigator extends React.Component<Props> {
-    static displayName = `withNavigator(${Component.displayName ||
+    static displayName = `WithNavigator(${Component.displayName ||
       Component.name})`;
 
     render() {

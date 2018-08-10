@@ -5,9 +5,9 @@ import { Animated, BackHandler, StyleSheet } from "react-native";
 import produce from "immer";
 import hoistNonReactStatics from "hoist-non-react-statics";
 
+import typeof NavigatorComponent from "./Navigator.js.flow";
 import type {
   NavigatorActions as Actions,
-  NavigatorScreensConfig as ScreensConfig,
   NavigatorState,
   NavigatorRoute as Route
 } from "./Navigator.js.flow";
@@ -68,14 +68,10 @@ function transition(
   }
 }
 
-type Props = {|
-  initialState: Route | NavigatorState,
-  screensConfig: ScreensConfig,
-  resetState?: ((state: NavigatorState) => void) => mixed,
-  onWillFocus?: (route: Route) => mixed
-|};
+type Props = React.ElementConfig<NavigatorComponent>;
 type State = $Exact<{
-  stacks: Array<RouteStack>
+  stacks: Array<RouteStack>,
+  value: Animated.Value
 }>;
 
 export default class Navigator extends React.Component<Props, State> {
@@ -90,7 +86,6 @@ export default class Navigator extends React.Component<Props, State> {
     dismiss: this.dismiss.bind(this)
   };
   _subscription: ?{ remove(): void };
-  _yValue: Animated.Value;
 
   constructor(props: Props) {
     super(props);
@@ -100,9 +95,9 @@ export default class Navigator extends React.Component<Props, State> {
       : [[props.initialState]];
 
     this.state = {
-      stacks: stacks.map(makeStack)
+      stacks: stacks.map(makeStack),
+      value: new Animated.Value(stacks.length - 1)
     };
-    this._yValue = new Animated.Value(stacks.length - 1);
 
     this._willFocus(last(last(stacks)));
   }
@@ -150,13 +145,13 @@ export default class Navigator extends React.Component<Props, State> {
   }
 
   _setStackRoutes(
-    modify: (Array<InternalRoute>) => Array<InternalRoute> | void,
+    update: (Array<InternalRoute>) => Array<InternalRoute> | void,
     callback: () => void
   ) {
     this.setState(
       produce(function({ stacks }: State): void {
         let stack = last(stacks);
-        let routes = modify(stack.routes);
+        let routes = update(stack.routes);
         if (routes) {
           stack.routes = routes;
         }
@@ -273,27 +268,23 @@ export default class Navigator extends React.Component<Props, State> {
         stacks.push(makeStack(routes));
       }),
       () => {
-        transition(
-          this._yValue,
-          this.state.stacks.length - 1,
-          options?.animated,
-          () => {
-            lock.release();
-          }
-        );
+        let { value, stacks } = this.state;
+        transition(value, stacks.length - 1, options?.animated, () => {
+          lock.release();
+        });
       }
     );
   }
 
   dismiss(options?: Options) {
-    let { stacks } = this.state;
+    let { stacks, value } = this.state;
     if (stacks.length === 1) {
       return;
     }
 
     if (lock.acquire()) {
       this._willFocus(last(stacks[stacks.length - 2].routes));
-      transition(this._yValue, stacks.length - 2, options?.animated, () => {
+      transition(value, stacks.length - 2, options?.animated, () => {
         this.setState({ stacks: stacks.slice(0, -1) }, () => {
           lock.release();
         });
@@ -316,7 +307,7 @@ export default class Navigator extends React.Component<Props, State> {
     if (this.props.resetState) {
       this.props.resetState(state => {
         this.setState({ stacks: state.map(makeStack) }, () => {
-          this._yValue.setValue(state.length - 1);
+          this.state.value.setValue(state.length - 1);
           lock.release();
         });
       });
@@ -330,11 +321,11 @@ export default class Navigator extends React.Component<Props, State> {
   }
 
   render() {
-    let { stacks } = this.state;
+    let { stacks, value } = this.state;
     return (
       <Provider value={this._actions}>
         {stacks.map((stack, i) => {
-          let style = animations.vertical(this._yValue, i);
+          let style = animations.vertical(value, i);
           return (
             <Animated.View key={stack.key} style={[styles.base, style]}>
               {stack.routes.map((route, j) => {

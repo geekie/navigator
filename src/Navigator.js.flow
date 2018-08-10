@@ -20,7 +20,7 @@ export type NavigatorActions = $Exact<{
   dismiss(options?: Options): void
 }>;
 
-export type NavigatorScreensConfig = {
+type NavigatorScreensConfig = {
   [string]: React$ComponentType<any>
 };
 
@@ -36,3 +36,7 @@ declare export default React$ComponentType<
 declare export function withNavigator<Props: {}>(
   Component: React$ComponentType<Props>
 ): React$ComponentType<$Diff<Props, { navigator: NavigatorActions | void }>>;
+
+declare export class NavigatorProvider extends React$Component<
+  $Exact<{ navigator: NavigatorActions }>
+> {}

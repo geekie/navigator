@@ -315,6 +315,10 @@ export default class Navigator extends React.Component<Props, State> {
   }
 
   componentWillUnmount() {
+    if (this.props.resetState) {
+      this.props.resetState(null);
+    }
+
     if (this._subscription) {
       this._subscription.remove();
     }

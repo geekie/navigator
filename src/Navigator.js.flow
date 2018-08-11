@@ -29,7 +29,7 @@ declare export default React$ComponentType<
     initialState: NavigatorRoute | NavigatorState,
     screensConfig: NavigatorScreensConfig,
     onWillFocus?: (route: NavigatorRoute) => mixed,
-    resetState?: ((state: NavigatorState) => void) => mixed
+    resetState?: (((state: NavigatorState) => void) | null) => mixed
   }>
 >;
 

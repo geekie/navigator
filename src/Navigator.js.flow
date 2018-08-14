@@ -24,10 +24,20 @@ type NavigatorScreensConfig = {
   [string]: React$ComponentType<any>
 };
 
+type Style =
+  | null
+  | void
+  | number
+  | false
+  | ""
+  | $ReadOnlyArray<Style>
+  | { [name: string]: any };
+
 declare export default React$ComponentType<
   $Exact<{
     initialState: NavigatorRoute | NavigatorState,
     screensConfig: NavigatorScreensConfig,
+    screenStyle?: Symbol,
     onWillFocus?: (route: NavigatorRoute) => mixed,
     resetState?: (((state: NavigatorState) => void) | null) => mixed
   }>

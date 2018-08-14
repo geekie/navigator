@@ -326,6 +326,7 @@ export default class Navigator extends React.Component<Props, State> {
 
   render() {
     let { stacks, value } = this.state;
+    let { screenStyle, screensConfig } = this.props;
     return (
       <Provider value={this._actions}>
         {stacks.map((stack, i) => {
@@ -333,10 +334,13 @@ export default class Navigator extends React.Component<Props, State> {
           return (
             <Animated.View key={stack.key} style={[styles.base, style]}>
               {stack.routes.map((route, j) => {
-                let Component = this.props.screensConfig[route.screen];
+                let Component = screensConfig[route.screen];
                 let style = animations.horizontal(stack.value, j);
                 return (
-                  <Animated.View key={route.key} style={[styles.base, style]}>
+                  <Animated.View
+                    key={route.key}
+                    style={[styles.base, style, screenStyle]}
+                  >
                     <Component navigator={this._actions} {...route.props} />
                   </Animated.View>
                 );

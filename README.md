@@ -47,6 +47,7 @@ The library has a single default export which is the `Navigator` component that 
 
 - `screensConfig`: **(required)** an object like `{ "ScreenName": ScreenComponent }`. The key will be used to reference the screen in the navigator commands, and the navigator will use the component defined when rendering the screen.
 - `initialState`: **(required)** the initial state of the navigator: an array of arrays of routes. A route is defined as an object with the keys: `screen` (the name defined in `screensConfig`) and `props` (optional), an object that will be passed to the rendered component.
+- `screenStyle`: custom style to be applied the View wrapping the rendered screen.
 - `resetState`: a function that will be called when the navigator is rendered, with another function that can reset the whole state programatically. See an example below.
 - `onWillFocus`: a function that will be called right before a screen is focused.
 

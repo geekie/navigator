@@ -3,7 +3,9 @@
 import * as React from "react";
 import { Animated, BackHandler, StyleSheet } from "react-native";
 import produce from "immer";
-import hoistNonReactStatics from "hoist-non-react-statics";
+import { NavigatorProvider } from "./Context";
+import * as animations from "./animations";
+import { last, lock, uid } from "./utils";
 
 import typeof NavigatorComponent from "./Navigator.js.flow";
 import type {
@@ -11,8 +13,6 @@ import type {
   NavigatorState,
   NavigatorRoute as Route
 } from "./Navigator.js.flow";
-import * as animations from "./animations";
-import { last, lock, uid } from "./utils";
 
 type Options = {|
   animated: boolean
@@ -24,11 +24,6 @@ type RouteStack = {|
   value: Animated.Value,
   routes: Array<InternalRoute>
 |};
-
-const {
-  Provider,
-  Consumer
-}: React.Context<Actions | void> = React.createContext();
 
 function makeStack(routes: Route | Array<Route>): RouteStack {
   routes = Array.isArray(routes) ? routes : [routes];
@@ -74,7 +69,7 @@ type State = $Exact<{
   value: Animated.Value
 }>;
 
-export default class Navigator extends React.Component<Props, State> {
+class Navigator extends React.Component<Props, State> {
   _actions: Actions = {
     push: this.push.bind(this),
     pop: this.pop.bind(this),
@@ -328,7 +323,7 @@ export default class Navigator extends React.Component<Props, State> {
     let { stacks, value } = this.state;
     let { screenStyle, screensConfig } = this.props;
     return (
-      <Provider value={this._actions}>
+      <NavigatorProvider navigator={this._actions}>
         {stacks.map((stack, i) => {
           let style = animations.vertical(value, i);
           return (
@@ -348,47 +343,13 @@ export default class Navigator extends React.Component<Props, State> {
             </Animated.View>
           );
         })}
-      </Provider>
+      </NavigatorProvider>
     );
   }
 }
 
-export function withNavigator<Props: {}>(
-  Component: React.ComponentType<Props>
-): React.ComponentType<$Diff<Props, { navigator: Actions | void }>> {
-  class WithNavigator extends React.Component<Props> {
-    static displayName = `WithNavigator(${Component.displayName ||
-      Component.name})`;
-
-    render() {
-      return (
-        <Consumer>
-          {navigator => {
-            if (__DEV__ && !navigator) {
-              console.warn(
-                "`withNavigation` can only be used when rendered by the `Navigator`. " +
-                  "Unable to access the `navigator` prop."
-              );
-            }
-            return <Component navigator={navigator} {...this.props} />;
-          }}
-        </Consumer>
-      );
-    }
-  }
-  return hoistNonReactStatics(WithNavigator, Component);
-}
-
-export class NavigatorProvider extends React.Component<{
-  navigator: Actions,
-  children: React.Node
-}> {
-  render() {
-    return (
-      <Provider value={this.props.navigator}>{this.props.children}</Provider>
-    );
-  }
-}
+export default Navigator;
+export * from "./Context";
 
 const styles = StyleSheet.create({
   base: {

@@ -1,3 +1,5 @@
+/** @flow */
+
 import React from "react";
 import {
   Switch as RNSwitch,
@@ -6,8 +8,8 @@ import {
   TouchableOpacity,
   View
 } from "react-native";
-import Navigator, { withNavigator } from "@geekie/navigator";
-import type { NavigatorActions, NavigatorState } from "@geekie/navigator";
+import Navigator, { withNavigator } from "../dist/Navigator";
+import type { NavigatorActions, NavigatorState } from "../dist/Navigator";
 
 let COLOR = 0;
 const colors = ["#fff", "#00f", "#0f0", "#f00", "#ff0", "#f0f", "#0ff"];

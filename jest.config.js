@@ -1,12 +1,10 @@
 "use strict";
 
-const { haste } = require("react-native/jest-preset");
-
-haste.defaultPlatform = "android";
-
 module.exports = {
   preset: "react-native",
-  haste,
+  haste: Object.assign({}, require("react-native/jest-preset").haste, {
+    defaultPlatform: "android"
+  }),
   modulePathIgnorePatterns: ["<rootDir>/playground"],
   setupFiles: ["<rootDir>/tests/setup.js"]
 };

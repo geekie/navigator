@@ -3,7 +3,7 @@
 module.exports = {
   env: {
     test: {
-      presets: ["react-native"]
+      presets: ["module:metro-react-native-babel-preset"]
     },
     production: {
       plugins: [

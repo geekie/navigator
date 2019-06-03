@@ -1,5 +1,5 @@
 jest.mock("Animated", () =>
-  Object.assign(require.requireActual("Animated"), {
+  Object.assign({}, require.requireActual("Animated"), {
     View: props => props.children
   })
 );

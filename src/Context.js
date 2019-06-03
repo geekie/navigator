@@ -4,10 +4,7 @@ import * as React from "React";
 import hoistNonReactStatics from "hoist-non-react-statics";
 import type { NavigatorActions } from "./Navigator.js.flow";
 
-const {
-  Provider,
-  Consumer
-}: React.Context<NavigatorActions | void> = React.createContext();
+const NavigatorContext: React.Context<NavigatorActions | void> = React.createContext();
 
 export function withNavigator<Props: {}>(
   Component: React.ComponentType<Props>
@@ -16,20 +13,16 @@ export function withNavigator<Props: {}>(
     static displayName = `WithNavigator(${Component.displayName ||
       Component.name})`;
 
+    static contextType = NavigatorContext;
+
     render() {
-      return (
-        <Consumer>
-          {navigator => {
-            if (__DEV__ && !navigator) {
-              console.warn(
-                "`withNavigation` can only be used when rendered by the `Navigator`. " +
-                  "Unable to access the `navigator` prop."
-              );
-            }
-            return <Component navigator={navigator} {...this.props} />;
-          }}
-        </Consumer>
-      );
+      if (__DEV__ && !this.context) {
+        console.warn(
+          "`withNavigation` can only be used when rendered by the `Navigator`. " +
+            "Unable to access the `navigator` prop."
+        );
+      }
+      return <Component navigator={this.context} {...this.props} />;
     }
   }
   return hoistNonReactStatics(WithNavigator, Component);
@@ -41,7 +34,9 @@ export class NavigatorProvider extends React.Component<{
 }> {
   render() {
     return (
-      <Provider value={this.props.navigator}>{this.props.children}</Provider>
+      <NavigatorContext.Provider value={this.props.navigator}>
+        {this.props.children}
+      </NavigatorContext.Provider>
     );
   }
 }

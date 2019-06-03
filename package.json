@@ -17,24 +17,24 @@
     "animated"
   ],
   "dependencies": {
-    "hoist-non-react-statics": "^3.0.1",
+    "hoist-non-react-statics": "^3.3.0",
     "immer": "^1.5.0"
   },
   "peerDependencies": {
-    "react": ">=16.3.0",
-    "react-native": ">=0.55.0"
+    "react": ">=16.8.0",
+    "react-native": ">=0.59.0"
   },
   "devDependencies": {
-    "@babel/cli": "^7.0.0",
-    "@babel/core": "^7.0.0",
-    "@babel/plugin-proposal-optional-chaining": "^7.0.0",
-    "@babel/plugin-syntax-class-properties": "^7.0.0",
-    "@babel/plugin-syntax-flow": "^7.0.0",
-    "@babel/plugin-syntax-jsx": "^7.0.0",
-    "@babel/plugin-transform-flow-strip-types": "^7.0.0",
+    "@babel/cli": "^7.4.4",
+    "@babel/core": "^7.4.4",
+    "@babel/plugin-proposal-optional-chaining": "^7.2.0",
+    "@babel/plugin-syntax-class-properties": "^7.2.0",
+    "@babel/plugin-syntax-flow": "^7.2.0",
+    "@babel/plugin-syntax-jsx": "^7.2.0",
+    "@babel/plugin-transform-flow-strip-types": "^7.4.4",
     "babel-core": "7.0.0-bridge.0",
-    "babel-eslint": "^8.2.6",
-    "babel-jest": "^23.4.2",
+    "babel-eslint": "^10.0.1",
+    "babel-jest": "^24.8.0",
     "codecov": "^3.0.4",
     "eslint": "^5.2.0",
     "eslint-config-prettier": "^2.9.0",
@@ -42,12 +42,12 @@
     "eslint-plugin-prettier": "^2.6.2",
     "eslint-plugin-react": "^7.10.0",
     "flow-bin": "^0.78.0",
-    "jest": "^23.6.0",
-    "metro-react-native-babel-preset": "0.48.1",
+    "jest": "^24.8.0",
+    "metro-react-native-babel-preset": "0.54.1",
     "prettier": "^1.14.0",
-    "react": "16.5.0",
-    "react-native": "0.57.2",
-    "react-test-renderer": "16.5.0"
+    "react": "16.8.3",
+    "react-native": "0.59.3",
+    "react-test-renderer": "16.8.3"
   },
   "scripts": {
     "prepare": "npm run build",

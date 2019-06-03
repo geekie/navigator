@@ -1,32 +1,14 @@
-/** @flow */
-
-import * as React from "react";
+import React from "react";
 import { Animated, BackHandler, StyleSheet } from "react-native";
 import produce from "immer";
 import { NavigatorProvider } from "./Context";
 import * as animations from "./animations";
 import { last, lock, uid } from "./utils";
 
-import typeof NavigatorComponent from "./Navigator.js.flow";
-import type {
-  NavigatorActions as Actions,
-  NavigatorState,
-  NavigatorRoute as Route
-} from "./Navigator.js.flow";
-
-type Options = {|
-  animated: boolean
-|};
-
-type InternalRoute = {| key: string, ...Route |};
-type RouteStack = {|
-  key: string,
-  value: Animated.Value,
-  routes: Array<InternalRoute>
-|};
-
-function makeStack(routes: Route | Array<Route>): RouteStack {
-  routes = Array.isArray(routes) ? routes : [routes];
+function makeStack(routes) {
+  if (!Array.isArray(routes)) {
+    routes = [routes];
+  }
   return {
     key: "stack_" + uid(),
     routes: routes.map(makeRoute),
@@ -34,7 +16,7 @@ function makeStack(routes: Route | Array<Route>): RouteStack {
   };
 }
 
-function makeRoute({ screen, props }: Route) {
+function makeRoute({ screen, props }) {
   return {
     key: "screen_" + uid(),
     screen,
@@ -42,12 +24,7 @@ function makeRoute({ screen, props }: Route) {
   };
 }
 
-function transition(
-  value: Animated.Value,
-  toValue: number,
-  animated: boolean | void,
-  cb?: () => any
-) {
+function transition(value, toValue, animated, cb) {
   if (animated === false) {
     value.setValue(toValue);
     cb?.();
@@ -63,14 +40,8 @@ function transition(
   }
 }
 
-type Props = React.ElementConfig<NavigatorComponent>;
-type State = $Exact<{
-  stacks: Array<RouteStack>,
-  value: Animated.Value
-}>;
-
-class Navigator extends React.Component<Props, State> {
-  _actions: Actions = {
+class Navigator extends React.Component {
+  _actions = {
     push: this.push.bind(this),
     pop: this.pop.bind(this),
     popTo: this.popTo.bind(this),
@@ -80,12 +51,11 @@ class Navigator extends React.Component<Props, State> {
     present: this.present.bind(this),
     dismiss: this.dismiss.bind(this)
   };
-  _subscription: ?{ remove(): void };
 
-  constructor(props: Props) {
+  constructor(props) {
     super(props);
 
-    let stacks: NavigatorState = Array.isArray(props.initialState)
+    let stacks = Array.isArray(props.initialState)
       ? props.initialState
       : [[props.initialState]];
 
@@ -97,15 +67,15 @@ class Navigator extends React.Component<Props, State> {
     this._willFocus(last(last(stacks)));
   }
 
-  _willFocus({ screen, props }: Route | InternalRoute) {
+  _willFocus({ screen, props }) {
     if (this.props.onWillFocus) {
       this.props.onWillFocus({ screen, props });
     }
   }
 
-  _pushRoute(route: InternalRoute, animated?: boolean, callback: () => void) {
+  _pushRoute(route, animated, callback) {
     this.setState(
-      produce(function({ stacks }: State): void {
+      produce(function({ stacks }) {
         last(stacks).routes.push(route);
       }),
       () => {
@@ -117,9 +87,9 @@ class Navigator extends React.Component<Props, State> {
     );
   }
 
-  _popRoutes(n: number, animated?: boolean, callback: () => void) {
+  _popRoutes(n, animated, callback) {
     this.setState(
-      produce(function({ stacks }: State): void {
+      produce(function({ stacks }) {
         last(stacks).routes.splice(-n, n - 1);
       }),
       () => {
@@ -127,7 +97,7 @@ class Navigator extends React.Component<Props, State> {
         value.setValue(routes.length - 1);
         transition(value, routes.length - 2, animated, () => {
           this.setState(
-            produce(function({ stacks }: State): void {
+            produce(function({ stacks }) {
               last(stacks).routes.pop();
             }),
             () => {
@@ -139,12 +109,9 @@ class Navigator extends React.Component<Props, State> {
     );
   }
 
-  _setStackRoutes(
-    update: (Array<InternalRoute>) => Array<InternalRoute> | void,
-    callback: () => void
-  ) {
+  _setStackRoutes(update, callback) {
     this.setState(
-      produce(function({ stacks }: State): void {
+      produce(function({ stacks }) {
         let stack = last(stacks);
         let routes = update(stack.routes);
         if (routes) {
@@ -159,7 +126,7 @@ class Navigator extends React.Component<Props, State> {
     );
   }
 
-  push(route: Route, options?: Options) {
+  push(route, options) {
     if (lock.acquire()) {
       this._willFocus(route);
       this._pushRoute(makeRoute(route), options?.animated, () => {
@@ -168,7 +135,7 @@ class Navigator extends React.Component<Props, State> {
     }
   }
 
-  pop(options?: Options) {
+  pop(options) {
     const { routes } = last(this.state.stacks);
     if (routes.length === 1) {
       this.dismiss(options);
@@ -183,7 +150,7 @@ class Navigator extends React.Component<Props, State> {
     }
   }
 
-  popTo(screen: string, options?: Options) {
+  popTo(screen, options) {
     let { routes } = last(this.state.stacks);
     let index = routes.findIndex(route => route.screen === screen);
     if (routes.length === 1 || index === -1) {
@@ -198,7 +165,7 @@ class Navigator extends React.Component<Props, State> {
     }
   }
 
-  replace(route: Route, options?: Options) {
+  replace(route, options) {
     if (!lock.acquire()) {
       return;
     }
@@ -219,7 +186,7 @@ class Navigator extends React.Component<Props, State> {
    * Resets the current stack with the new route, with an animation
    * from the left
    */
-  reset(route: Route, options?: Options) {
+  reset(route, options) {
     if (!lock.acquire()) {
       return;
     }
@@ -238,7 +205,7 @@ class Navigator extends React.Component<Props, State> {
    * Resets the current stack with the new screen, with an animation
    * from the right
    */
-  pushReset(route: Route, options?: Options) {
+  pushReset(route, options) {
     if (!lock.acquire()) {
       return;
     }
@@ -253,13 +220,13 @@ class Navigator extends React.Component<Props, State> {
     });
   }
 
-  present(routes: Route | Array<Route>, options?: Options) {
+  present(routes, options) {
     if (!lock.acquire()) {
       return;
     }
     this._willFocus(Array.isArray(routes) ? last(routes) : routes);
     this.setState(
-      produce(function({ stacks }: State): void {
+      produce(function({ stacks }) {
         stacks.push(makeStack(routes));
       }),
       () => {
@@ -271,7 +238,7 @@ class Navigator extends React.Component<Props, State> {
     );
   }
 
-  dismiss(options?: Options) {
+  dismiss(options) {
     let { stacks, value } = this.state;
     if (stacks.length === 1) {
       return;

@@ -1,6 +1,4 @@
-/** @flow */
-
-export function last<T>(arr: Array<T>): T {
+export function last(arr) {
   return arr[arr.length - 1];
 }
 

@@ -12,7 +12,6 @@ before_script:
   - cd playground/ && yarn && cd ..
 script:
   - eslint .
-  - prettier --list-different README.md src/*.js.flow
-  - flow check
+  - prettier --list-different README.md
   - jest --coverage
   - codecov

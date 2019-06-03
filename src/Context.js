@@ -1,15 +1,10 @@
-/** @flow */
-
-import * as React from "React";
+import React from "React";
 import hoistNonReactStatics from "hoist-non-react-statics";
-import type { NavigatorActions } from "./Navigator.js.flow";
 
-const NavigatorContext: React.Context<NavigatorActions | void> = React.createContext();
+const NavigatorContext = React.createContext();
 
-export function withNavigator<Props: {}>(
-  Component: React.ComponentType<Props>
-): React.ComponentType<$Diff<Props, { navigator: NavigatorActions | void }>> {
-  class WithNavigator extends React.Component<Props> {
+export function withNavigator(Component) {
+  class WithNavigator extends React.Component {
     static displayName = `WithNavigator(${Component.displayName ||
       Component.name})`;
 
@@ -19,7 +14,7 @@ export function withNavigator<Props: {}>(
       if (__DEV__ && !this.context) {
         console.warn(
           "`withNavigation` can only be used when rendered by the `Navigator`. " +
-            "Unable to access the `navigator` prop."
+            "Unable to find the `navigator` object."
         );
       }
       return <Component navigator={this.context} {...this.props} />;
@@ -28,10 +23,18 @@ export function withNavigator<Props: {}>(
   return hoistNonReactStatics(WithNavigator, Component);
 }
 
-export class NavigatorProvider extends React.Component<{
-  navigator: NavigatorActions,
-  children: React.Node
-}> {
+export function useNavigator() {
+  const navigator = React.useContext(NavigatorContext);
+  if (__DEV__ && !navigator) {
+    console.warn(
+      "`useNavigator` can only be used when rendered by the `Navigator`. " +
+        "Unable to find the `navigator` object."
+    );
+  }
+  return navigator;
+}
+
+export class NavigatorProvider extends React.Component {
   render() {
     return (
       <NavigatorContext.Provider value={this.props.navigator}>

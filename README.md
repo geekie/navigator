@@ -101,13 +101,9 @@ class App extends React.Component {
 
 The components rendered will receive a `navigator` prop that contains the commands to navigate through screens.
 
-### `withNavigator(Component)`
-
-`withNavigator` is a higher order component that injects the `navigator` prop to the wrapped `Component`. This is useful if you need it in a deeply nested component or you can't pass the prop from the screen component.
-
 ### `NavigatorProvider`
 
-This is useful if you're rendering screens wrapped with `withNavigator` but doesn't want to render the whole navigator, or would like to pass a mocked navigator prop to check calls.
+This is useful if you're rendering screens wrapped with `withNavigator` or that use `useNavigator` but doesn't want to render the whole navigator, or would like to pass a mocked navigator prop to check calls.
 
 ```js
 const test = render(
@@ -116,6 +112,14 @@ const test = render(
   </NavigatorProvider>
 );
 ```
+
+### `withNavigator(Component)`
+
+`withNavigator` is a higher order component that injects the `navigator` prop to the wrapped `Component`. This is useful if you need it in a deeply nested component or you can't pass the prop from the screen component.
+
+### `useNavigator()`
+
+This is a React Hook that returns the `navigator` provided with `NavigatorProvider`. This is a substitute to `withNavigator()`.
 
 ### `navigator.present(route)` or `navigator.present(routes)`
 

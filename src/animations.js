@@ -1,11 +1,9 @@
-/** @flow */
+import { Dimensions } from "react-native";
 
-import { Animated, Dimensions } from "react-native";
+const SCREEN_WIDTH = Dimensions.get("window").width;
+const SCREEN_HEIGHT = Dimensions.get("window").height;
 
-const SCREEN_WIDTH: number = Dimensions.get("window").width;
-const SCREEN_HEIGHT: number = Dimensions.get("window").height;
-
-export function horizontal(position: Animated.Value, index: number) {
+export function horizontal(position, index) {
   const opacity = position.interpolate({
     inputRange: [index - 1, index, index + 1],
     outputRange: [1, 1, 0.3]
@@ -27,7 +25,7 @@ export function horizontal(position: Animated.Value, index: number) {
   };
 }
 
-export function vertical(position: Animated.Value, index: number) {
+export function vertical(position, index) {
   const opacity = position.interpolate({
     inputRange: [index - 1, index, index + 1],
     outputRange: [1, 1, 0.3]

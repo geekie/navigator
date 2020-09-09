@@ -122,3 +122,23 @@ describe("locks during transition", () => {
     );
   });
 });
+
+describe("allows waiting on lock via waitForPendingNavigations", () => {
+  afterEach(() => {
+    clean();
+  });
+
+  test("present + replace", () => {
+    let { navigator, toJSON } = render({ initialState: [[{ screen: "Foo" }]] });
+
+    const nav = navigator();
+    nav.present({ screen: "Bar" });
+    nav
+      .waitForPendingNavigations()
+      .then(() => nav.replace({ screen: "Spam" }, { animated: false }));
+
+    jest.runAllTimers();
+
+    expect(toJSON()).toEqual(["Foo", "Spam"]);
+  });
+});

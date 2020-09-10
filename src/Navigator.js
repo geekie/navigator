@@ -3,7 +3,7 @@ import { Animated, BackHandler, StyleSheet } from "react-native";
 import produce from "immer";
 import { NavigatorProvider } from "./Context";
 import * as animations from "./animations";
-import { last, lock, uid } from "./utils";
+import { last, uid } from "./utils";
 
 function makeStack(routes) {
   if (!Array.isArray(routes)) {
@@ -49,7 +49,8 @@ class Navigator extends React.Component {
     reset: this.reset.bind(this),
     pushReset: this.pushReset.bind(this),
     present: this.present.bind(this),
-    dismiss: this.dismiss.bind(this)
+    dismiss: this.dismiss.bind(this),
+    waitForPendingNavigations: this.waitForPendingNavigations.bind(this)
   };
 
   constructor(props) {
@@ -65,6 +66,28 @@ class Navigator extends React.Component {
     };
 
     this._willFocus(last(last(stacks)));
+  }
+
+  acquireLock() {
+    if (this._lockWaiter) {
+      return false;
+    } else {
+      this._lockWaiter = {};
+      this._lockWaiter.promise = new Promise(resolve => {
+        this._lockWaiter.resolve = resolve;
+      });
+
+      return true;
+    }
+  }
+
+  releaseLock() {
+    const previousLockWaiter = this._lockWaiter;
+    this._lockWaiter = null;
+
+    if (previousLockWaiter) {
+      previousLockWaiter.resolve();
+    }
   }
 
   _willFocus({ screen, props }) {
@@ -127,10 +150,10 @@ class Navigator extends React.Component {
   }
 
   push(route, options) {
-    if (lock.acquire()) {
+    if (this.acquireLock()) {
       this._willFocus(route);
       this._pushRoute(makeRoute(route), options?.animated, () => {
-        lock.release();
+        this.releaseLock();
       });
     }
   }
@@ -142,10 +165,10 @@ class Navigator extends React.Component {
       return;
     }
 
-    if (lock.acquire()) {
+    if (this.acquireLock()) {
       this._willFocus(routes[routes.length - 2]);
       this._popRoutes(1, options?.animated, () => {
-        lock.release();
+        this.releaseLock();
       });
     }
   }
@@ -157,16 +180,16 @@ class Navigator extends React.Component {
       return;
     }
 
-    if (lock.acquire()) {
+    if (this.acquireLock()) {
       this._willFocus(routes[index]);
       this._popRoutes(routes.length - index - 1, options?.animated, () => {
-        lock.release();
+        this.releaseLock();
       });
     }
   }
 
   replace(route, options) {
-    if (!lock.acquire()) {
+    if (!this.acquireLock()) {
       return;
     }
     this._willFocus(route);
@@ -176,7 +199,7 @@ class Navigator extends React.Component {
           routes.splice(-2, 1);
         },
         () => {
-          lock.release();
+          this.releaseLock();
         }
       );
     });
@@ -187,7 +210,7 @@ class Navigator extends React.Component {
    * from the left
    */
   reset(route, options) {
-    if (!lock.acquire()) {
+    if (!this.acquireLock()) {
       return;
     }
     this._willFocus(route);
@@ -195,7 +218,7 @@ class Navigator extends React.Component {
       routes => [makeRoute(route), routes[routes.length - 1]],
       () => {
         this._popRoutes(1, options?.animated, () => {
-          lock.release();
+          this.releaseLock();
         });
       }
     );
@@ -206,7 +229,7 @@ class Navigator extends React.Component {
    * from the right
    */
   pushReset(route, options) {
-    if (!lock.acquire()) {
+    if (!this.acquireLock()) {
       return;
     }
     this._willFocus(route);
@@ -214,14 +237,14 @@ class Navigator extends React.Component {
       this._setStackRoutes(
         routes => [last(routes)],
         () => {
-          lock.release();
+          this.releaseLock();
         }
       );
     });
   }
 
   present(routes, options) {
-    if (!lock.acquire()) {
+    if (!this.acquireLock()) {
       return;
     }
     this._willFocus(Array.isArray(routes) ? last(routes) : routes);
@@ -232,7 +255,7 @@ class Navigator extends React.Component {
       () => {
         let { value, stacks } = this.state;
         transition(value, stacks.length - 1, options?.animated, () => {
-          lock.release();
+          this.releaseLock();
         });
       }
     );
@@ -244,13 +267,21 @@ class Navigator extends React.Component {
       return;
     }
 
-    if (lock.acquire()) {
+    if (this.acquireLock()) {
       this._willFocus(last(stacks[stacks.length - 2].routes));
       transition(value, stacks.length - 2, options?.animated, () => {
         this.setState({ stacks: stacks.slice(0, -1) }, () => {
-          lock.release();
+          this.releaseLock();
         });
       });
+    }
+  }
+
+  waitForPendingNavigations() {
+    if (this._lockWaiter) {
+      return this._lockWaiter.promise;
+    } else {
+      return Promise.resolve();
     }
   }
 
@@ -270,7 +301,7 @@ class Navigator extends React.Component {
       this.props.resetState(state => {
         this.setState({ stacks: state.map(makeStack) }, () => {
           this.state.value.setValue(state.length - 1);
-          lock.release();
+          this.releaseLock();
         });
       });
     }

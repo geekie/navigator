@@ -123,6 +123,8 @@ export default class Navigator extends React.Component<Props, State> {
     if (previousLockWaiter) {
       previousLockWaiter.resolve();
     }
+
+    this._onRouteRendered(last(last(this.state.stacks).routes));
   }
 
   _willFocus(route: InternalRoute, navigationType: string) {
@@ -414,7 +416,6 @@ export default class Navigator extends React.Component<Props, State> {
                   <Animated.View
                     key={route.key}
                     style={[styles.base, style, screenStyle]}
-                    onLayout={() => this._onRouteRendered(route)}
                   >
                     <Component navigator={this._actions} {...route.props} />
                   </Animated.View>

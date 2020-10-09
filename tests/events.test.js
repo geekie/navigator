@@ -4,6 +4,7 @@ jest.useFakeTimers();
 
 describe("onWillFocus", () => {
   let onWillFocus = jest.fn();
+  let onDidFocus = jest.fn();
   let count = 1;
   let navigator;
 
@@ -23,10 +24,16 @@ describe("onWillFocus", () => {
   test("is called on mount", () => {
     ({ navigator } = render({
       initialState: fooScreen,
-      onWillFocus
+      onWillFocus,
+      onDidFocus
     }));
     expect(onWillFocus).toHaveBeenCalledTimes(count++);
-    expect(onWillFocus).toHaveBeenLastCalledWith(fooScreen);
+    expect(onWillFocus).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        ...fooScreen,
+        navigationType: "initial"
+      })
+    );
   });
 
   // state = [["Foo"]]
@@ -34,7 +41,14 @@ describe("onWillFocus", () => {
   test("push", () => {
     navigator().push(barScreen);
     expect(onWillFocus).toHaveBeenCalledTimes(count++);
-    expect(onWillFocus).toHaveBeenLastCalledWith(barScreen);
+    expect(onWillFocus).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        ...barScreen,
+        route: expect.objectContaining(barScreen),
+        navigationType: "push",
+        previousRoute: expect.objectContaining(fooScreen)
+      })
+    );
   });
 
   // state = [["Foo", "Bar"]]
@@ -42,7 +56,14 @@ describe("onWillFocus", () => {
   test("pop", () => {
     navigator().pop();
     expect(onWillFocus).toHaveBeenCalledTimes(count++);
-    expect(onWillFocus).toHaveBeenLastCalledWith(fooScreen);
+    expect(onWillFocus).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        ...fooScreen,
+        route: expect.objectContaining(fooScreen),
+        navigationType: "pop",
+        previousRoute: expect.objectContaining(barScreen)
+      })
+    );
   });
 
   // state = [["Foo"]]
@@ -50,7 +71,14 @@ describe("onWillFocus", () => {
   test("present", () => {
     navigator().present(barScreen);
     expect(onWillFocus).toHaveBeenCalledTimes(count++);
-    expect(onWillFocus).toHaveBeenLastCalledWith(barScreen);
+    expect(onWillFocus).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        ...barScreen,
+        route: expect.objectContaining(barScreen),
+        navigationType: "present",
+        previousRoute: expect.objectContaining(fooScreen)
+      })
+    );
   });
 
   // state = [["Foo"], ["Bar"]]
@@ -58,7 +86,14 @@ describe("onWillFocus", () => {
   test("dismiss", () => {
     navigator().pop();
     expect(onWillFocus).toHaveBeenCalledTimes(count++);
-    expect(onWillFocus).toHaveBeenLastCalledWith(fooScreen);
+    expect(onWillFocus).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        ...fooScreen,
+        route: expect.objectContaining(fooScreen),
+        navigationType: "dismiss",
+        previousRoute: expect.objectContaining(barScreen)
+      })
+    );
   });
 
   // state = [["Foo"]]
@@ -66,7 +101,14 @@ describe("onWillFocus", () => {
   test("replace", () => {
     navigator().replace(spamScreen);
     expect(onWillFocus).toHaveBeenCalledTimes(count++);
-    expect(onWillFocus).toHaveBeenLastCalledWith(spamScreen);
+    expect(onWillFocus).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        ...spamScreen,
+        route: expect.objectContaining(spamScreen),
+        navigationType: "replace",
+        previousRoute: expect.objectContaining(fooScreen)
+      })
+    );
   });
 
   // state = [["Spam"]]
@@ -74,7 +116,14 @@ describe("onWillFocus", () => {
   test("present multiple", () => {
     navigator().present([fooScreen, barScreen, bazScreen]);
     expect(onWillFocus).toHaveBeenCalledTimes(count++);
-    expect(onWillFocus).toHaveBeenLastCalledWith(bazScreen);
+    expect(onWillFocus).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        ...bazScreen,
+        route: expect.objectContaining(bazScreen),
+        navigationType: "present",
+        previousRoute: expect.objectContaining(spamScreen)
+      })
+    );
   });
 
   // state = [["Spam"], ["Foo", "Bar", "Baz"]]
@@ -82,7 +131,14 @@ describe("onWillFocus", () => {
   test("popTo", () => {
     navigator().popTo("Foo");
     expect(onWillFocus).toHaveBeenCalledTimes(count++);
-    expect(onWillFocus).toHaveBeenLastCalledWith(fooScreen);
+    expect(onWillFocus).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        ...fooScreen,
+        route: expect.objectContaining(fooScreen),
+        navigationType: "pop",
+        previousRoute: expect.objectContaining(bazScreen)
+      })
+    );
   });
 
   // state = [["Spam"], ["Foo"]]
@@ -90,6 +146,13 @@ describe("onWillFocus", () => {
   test("pop that calls dismiss", () => {
     navigator().pop();
     expect(onWillFocus).toHaveBeenCalledTimes(count++);
-    expect(onWillFocus).toHaveBeenLastCalledWith(spamScreen);
+    expect(onWillFocus).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        ...spamScreen,
+        route: expect.objectContaining(spamScreen),
+        navigationType: "dismiss",
+        previousRoute: expect.objectContaining(fooScreen)
+      })
+    );
   });
 });

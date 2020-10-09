@@ -100,7 +100,7 @@ export default class Navigator extends React.Component<Props, State> {
       value: new Animated.Value(stacks.length - 1)
     };
 
-    this._willFocus(last(last(stacks)));
+    this._willFocus(last(last(this.state.stacks).routes), "initial");
   }
 
   acquireLock() {
@@ -125,9 +125,27 @@ export default class Navigator extends React.Component<Props, State> {
     }
   }
 
-  _willFocus({ screen, props }: Route | InternalRoute) {
+  _willFocus(route: InternalRoute, navigationType: string) {
+    this._willFocusEvent = {
+      route,
+      navigationType,
+      previousRoute:
+        navigationType === "initial"
+          ? null
+          : last(last(this.state.stacks).routes),
+      startedAt: Date.now()
+    };
+
     if (this.props.onWillFocus) {
-      this.props.onWillFocus({ screen, props });
+      this.props.onWillFocus({
+        // For backwards compatibility
+        screen: this._willFocusEvent.route.screen,
+        props: this._willFocusEvent.route.props,
+        // New props
+        route: this._willFocusEvent.route,
+        navigationType: this._willFocusEvent.navigationType,
+        previousRoute: this._willFocusEvent.previousRoute
+      });
     }
   }
 
@@ -189,8 +207,9 @@ export default class Navigator extends React.Component<Props, State> {
 
   push(route: Route, options?: Options) {
     if (this.acquireLock()) {
-      this._willFocus(route);
-      this._pushRoute(makeRoute(route), options?.animated, () => {
+      route = makeRoute(route);
+      this._willFocus(route, "push");
+      this._pushRoute(route, options?.animated, () => {
         this.releaseLock();
       });
     }
@@ -204,7 +223,7 @@ export default class Navigator extends React.Component<Props, State> {
     }
 
     if (this.acquireLock()) {
-      this._willFocus(routes[routes.length - 2]);
+      this._willFocus(routes[routes.length - 2], "pop");
       this._popRoutes(1, options?.animated, () => {
         this.releaseLock();
       });
@@ -219,7 +238,7 @@ export default class Navigator extends React.Component<Props, State> {
     }
 
     if (this.acquireLock()) {
-      this._willFocus(routes[index]);
+      this._willFocus(routes[index], "pop");
       this._popRoutes(routes.length - index - 1, options?.animated, () => {
         this.releaseLock();
       });
@@ -230,8 +249,9 @@ export default class Navigator extends React.Component<Props, State> {
     if (!this.acquireLock()) {
       return;
     }
-    this._willFocus(route);
-    this._pushRoute(makeRoute(route), options?.animated, () => {
+    route = makeRoute(route);
+    this._willFocus(route, "replace");
+    this._pushRoute(route, options?.animated, () => {
       this._setStackRoutes(
         routes => {
           routes.splice(-2, 1);
@@ -251,9 +271,10 @@ export default class Navigator extends React.Component<Props, State> {
     if (!this.acquireLock()) {
       return;
     }
-    this._willFocus(route);
+    route = makeRoute(route);
+    this._willFocus(route, "reset");
     this._setStackRoutes(
-      routes => [makeRoute(route), routes[routes.length - 1]],
+      routes => [route, routes[routes.length - 1]],
       () => {
         this._popRoutes(1, options?.animated, () => {
           this.releaseLock();
@@ -270,8 +291,9 @@ export default class Navigator extends React.Component<Props, State> {
     if (!this.acquireLock()) {
       return;
     }
-    this._willFocus(route);
-    this._pushRoute(makeRoute(route), options?.animated, () => {
+    route = makeRoute(route);
+    this._willFocus(route, "reset");
+    this._pushRoute(route, options?.animated, () => {
       this._setStackRoutes(
         routes => [last(routes)],
         () => {
@@ -285,10 +307,13 @@ export default class Navigator extends React.Component<Props, State> {
     if (!this.acquireLock()) {
       return;
     }
-    this._willFocus(Array.isArray(routes) ? last(routes) : routes);
+
+    const stack = makeStack(routes);
+    this._willFocus(last(stack.routes), "present");
+
     this.setState(
       produce(function({ stacks }: State): void {
-        stacks.push(makeStack(routes));
+        stacks.push(stack);
       }),
       () => {
         let { value, stacks } = this.state;
@@ -306,7 +331,7 @@ export default class Navigator extends React.Component<Props, State> {
     }
 
     if (this.acquireLock()) {
-      this._willFocus(last(stacks[stacks.length - 2].routes));
+      this._willFocus(last(stacks[stacks.length - 2].routes), "dismiss");
       transition(value, stacks.length - 2, options?.animated, () => {
         this.setState({ stacks: stacks.slice(0, -1) }, () => {
           this.releaseLock();
@@ -355,6 +380,24 @@ export default class Navigator extends React.Component<Props, State> {
     }
   }
 
+  _onRouteRendered(route: InternalRoute) {
+    if (!this._willFocusEvent || this._willFocusEvent.route !== route) {
+      return;
+    }
+
+    const willFocusEvent = this._willFocusEvent;
+    this._willFocusEvent = null;
+
+    if (this.props.onDidFocus) {
+      this.props.onDidFocus({
+        navigationType: willFocusEvent.navigationType,
+        route: willFocusEvent.route,
+        previousRoute: willFocusEvent.previousRoute,
+        timeElapsed: Date.now() - willFocusEvent.startedAt
+      });
+    }
+  }
+
   render() {
     let { stacks, value } = this.state;
     let { screenStyle, screensConfig } = this.props;
@@ -371,6 +414,7 @@ export default class Navigator extends React.Component<Props, State> {
                   <Animated.View
                     key={route.key}
                     style={[styles.base, style, screenStyle]}
+                    onLayout={() => this._onRouteRendered(route)}
                   >
                     <Component navigator={this._actions} {...route.props} />
                   </Animated.View>

@@ -2,7 +2,7 @@
 
 [![npm](https://badgen.net/npm/v/@geekie/navigator)](https://npmjs.org/@geekie/navigator)
 [![License](https://badgen.net/badge/license/MIT/blue)](LICENSE)
-[![Travis](https://badgen.net/travis/geekie/navigator)](https://travis-ci.com/geekie/navigator)
+[![CI](https://github.com/geekie/navigator/actions/workflows/ci.yml/badge.svg)](https://github.com/geekie/navigator/actions/workflows/ci.yml)
 [![Codecov](https://badgen.net/codecov/c/github/geekie/navigator)](https://codecov.io/gh/geekie/navigator)
 [![Prettier](https://badgen.net/badge/code%20style/prettier/ff69b4)](https://github.com/prettier/prettier)
 

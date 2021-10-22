@@ -17,8 +17,8 @@ jobs:
       uses: actions/setup-node@v2
       with:
         node-version: lts/*
-    - run: yarn install
-    - run: yarn jest --coverage
+    - run: npm i
+    - run: npm test -- --coverage
     - uses: codecov/codecov-action@v2
 
   lint:
@@ -30,6 +30,5 @@ jobs:
       - uses: actions/setup-node@v2
         with:
           node-version: lts/*
-      - run: yarn install
-      - run: yarn eslint .
-      - run: yarn prettier --list-different README.md
+      - run: npm i
+      - run: npm run lint

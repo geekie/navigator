@@ -17,8 +17,8 @@
     "animated"
   ],
   "dependencies": {
-    "hoist-non-react-statics": "^3.3.0",
-    "immer": "^1.5.0"
+    "hoist-non-react-statics": "^3.3.2",
+    "immer": ">=9.0.6"
   },
   "peerDependencies": {
     "react": ">=16.8.0",

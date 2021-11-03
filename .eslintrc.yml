@@ -1,4 +1,4 @@
-parser: babel-eslint
+parser: "@babel/eslint-parser"
 parserOptions:
   sourceType: module
   ecmaFeatures:
@@ -7,14 +7,14 @@ extends:
   - eslint:recommended
   - plugin:prettier/recommended
   - plugin:react/recommended
-settings:
-  react:
-    version: detect
 env:
   es6: true
   node: true
 globals:
   __DEV__: false
+settings:
+  react:
+    version: detect
 rules:
   curly: error
   no-console: off

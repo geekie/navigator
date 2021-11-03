@@ -7,7 +7,6 @@ import {
   View
 } from "react-native";
 import Navigator, { withNavigator } from "@geekie/navigator";
-import type { NavigatorActions, NavigatorState } from "@geekie/navigator";
 
 let COLOR = 0;
 const colors = ["#fff", "#00f", "#0f0", "#f00", "#ff0", "#f0f", "#0ff"];
@@ -34,11 +33,7 @@ function Switch({ label, ...props }) {
   );
 }
 
-function ActionButtons(props: {
-  navigator: NavigatorActions,
-  stacks: number,
-  screens: number
-}) {
+function ActionButtons(props) {
   return (
     <Consumer>
       {({ animated }) => (
@@ -123,12 +118,7 @@ function ActionButtons(props: {
 
 const ActionButtonsWithNavigator = withNavigator(ActionButtons);
 
-function Component(props: {
-  navigator: NavigatorActions,
-  color: number,
-  screens: number,
-  stacks: number
-}) {
+function Component(props) {
   return (
     <Consumer>
       {ctx => (
@@ -187,23 +177,14 @@ function Component(props: {
   );
 }
 
-export default class App extends React.Component<
-  empty,
-  {|
-    animated: boolean,
-    useHOC: boolean,
-    setAnimated(boolean): void,
-    setUseHOC(boolean): void,
-    resetState(NavigatorState): mixed
-  |}
-> {
+export default class App extends React.Component {
   _reset = null;
   state = {
     animated: true,
     useHOC: false,
-    setAnimated: (animated: boolean) => this.setState({ animated }),
-    setUseHOC: (useHOC: boolean) => this.setState({ useHOC }),
-    resetState: (state: NavigatorState) => this._reset && this._reset(state)
+    setAnimated: animated => this.setState({ animated }),
+    setUseHOC: useHOC => this.setState({ useHOC }),
+    resetState: state => this._reset && this._reset(state)
   };
 
   render() {

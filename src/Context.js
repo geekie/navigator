@@ -1,4 +1,4 @@
-import React from "React";
+import React from "react";
 import hoistNonReactStatics from "hoist-non-react-statics";
 
 const NavigatorContext = React.createContext();

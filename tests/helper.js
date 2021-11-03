@@ -5,7 +5,6 @@ import {
   render as _render,
   getQueriesForElement
 } from "@testing-library/react-native";
-import { format } from "pretty-format";
 
 export const makeScreen = name => ({ navigator }) => {
   const [next, setNext] = useState("");

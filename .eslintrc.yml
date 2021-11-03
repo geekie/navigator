@@ -7,6 +7,9 @@ extends:
   - eslint:recommended
   - plugin:prettier/recommended
   - plugin:react/recommended
+settings:
+  react:
+    version: detect
 env:
   es6: true
   node: true
@@ -16,6 +19,7 @@ rules:
   curly: error
   no-console: off
   react/prop-types: off
+  react/display-name: off
 overrides:
   - files:
       - babel.config.js

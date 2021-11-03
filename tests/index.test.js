@@ -194,14 +194,14 @@ describe("locks during transition", () => {
 // TODO: finish write this test or rethink this API
 describe.skip("can wait on lock with waitForPendingNavigations", () => {
   test("present + replace", () => {
-    const { navigate, queryScreen } = render(
+    const { navigate } = render(
       <Navigator
         screensConfig={screensConfig}
         initialState={{ screen: "Initial" }}
       />
     );
 
-    navigate("present", "Search", /* runAllTimers */ false);j
+    navigate("present", "Search", /* runAllTimers */ false);
   });
 });
 

@@ -92,6 +92,21 @@ describe("basic navigations", () => {
     expect(queryScreen("About")).toBeNull();
   });
 
+  test("dismiss does nothing if there's a single stack", () => {
+    const { navigate, queryAllScreens } = render(
+      <Navigator
+        screensConfig={screensConfig}
+        initialState={[[{ screen: "Initial" }, { screen: "Profile" }]]}
+      />
+    );
+
+    const state = queryAllScreens();
+
+    navigate("dismiss");
+
+    expect(queryAllScreens()).toEqual(state);
+  });
+
   describe("back button", () => {
     test("pops current screen", () => {
       const { queryScreen } = render(

@@ -3,6 +3,8 @@ import { BackHandler } from "react-native";
 import { screensConfig, render } from "./helper";
 import Navigator from "../src/Navigator";
 
+jest.mock("react-native/Libraries/Animated/NativeAnimatedHelper");
+
 jest.mock("react-native/Libraries/Utilities/BackHandler", () =>
   jest.requireActual("react-native/Libraries/Utilities/__mocks__/BackHandler")
 );

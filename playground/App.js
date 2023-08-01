@@ -86,6 +86,10 @@ function ActionButtons(props: {
             onPress={() => props.navigator.dismiss({ animated })}
           />
           <Button
+            label="dismissAll()"
+            onPress={() => props.navigator.dismissAll({ animated })}
+          />
+          <Button
             label="replace()"
             onPress={() =>
               props.navigator.replace(

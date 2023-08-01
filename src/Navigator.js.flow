@@ -18,6 +18,7 @@ export type NavigatorActions = $Exact<{
   pushReset(route: NavigatorRoute, options?: Options): void,
   present(route: NavigatorRoute, options?: Options): void,
   dismiss(options?: Options): void
+  dismissAll(options?: Options): void
 }>;
 
 type NavigatorScreensConfig = {

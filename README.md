@@ -129,6 +129,12 @@ Removes the whole current stack and renders the last route of the previous stack
 
 The screen will slide to the bottom.
 
+### `navigator.dismissAll()`
+
+Keeps only the first stack and renders the last route of the first stack.
+
+The screen will slide to the bottom.
+
 ### `navigator.push(route)`
 
 Pushes a new route (`{screen: "ScreenName", props: { }}`) to the current stack.

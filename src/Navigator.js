@@ -84,6 +84,7 @@ export default class Navigator extends React.Component<Props, State> {
     pushReset: this.pushReset.bind(this),
     present: this.present.bind(this),
     dismiss: this.dismiss.bind(this),
+    dismissAll: this.dismissAll.bind(this),
     waitForPendingNavigations: this.waitForPendingNavigations.bind(this)
   };
   _subscription: ?{ remove(): void };
@@ -336,6 +337,22 @@ export default class Navigator extends React.Component<Props, State> {
       this._willFocus(last(stacks[stacks.length - 2].routes), "dismiss");
       transition(value, stacks.length - 2, options?.animated, () => {
         this.setState({ stacks: stacks.slice(0, -1) }, () => {
+          this.releaseLock();
+        });
+      });
+    }
+  }
+
+  dismissAll(options?: Options) {
+    let { stacks, value } = this.state;
+    if (stacks.length === 1) {
+      return;
+    }
+
+    if (this.acquireLock()) {
+      this._willFocus(last(stacks[0].routes), "dismissAll");
+      transition(value, 0, options?.animated, () => {
+        this.setState({ stacks: stacks.slice(0, 1) }, () => {
           this.releaseLock();
         });
       });
